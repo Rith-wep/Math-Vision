@@ -55,7 +55,7 @@ export const BottomNavigation = () => {
     <>
       <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-4">
         <div className="app-shell w-full pointer-events-auto">
-          <div className="relative h-20 rounded-[2rem] border border-white/80 bg-white/80 px-5 backdrop-blur-lg shadow-[0_-10px_30px_rgba(15,23,42,0.08)]">
+          <div className="relative h-20 rounded-[2rem] border border-slate-200/80 bg-white/80 px-5 backdrop-blur-md shadow-[0_-10px_30px_rgba(15,23,42,0.08)]">
             <div className="flex h-full items-center justify-between">
               <div className="flex flex-1 items-center justify-start gap-1">
                 {navItems.slice(0, 2).map((item) => {

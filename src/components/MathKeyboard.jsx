@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Calculator, Delete, Equal, FlaskConical, Sparkles } from "lucide-react";
+import {
+  Calculator,
+  ChevronLeft,
+  ChevronRight,
+  Delete,
+  Equal,
+  FlaskConical,
+  Sparkles
+} from "lucide-react";
 
 const tabConfig = {
   basic: {
@@ -155,13 +163,22 @@ const SymbolIcon = ({ type }) => {
   return null;
 };
 
-export const MathKeyboard = ({ onKeyPress, onDelete, onSolve, disabled = false }) => {
+export const MathKeyboard = ({
+  onKeyPress,
+  onDelete,
+  onSolve,
+  onMoveLeft,
+  onMoveRight,
+  canMoveLeft = false,
+  canMoveRight = false,
+  disabled = false
+}) => {
   const [activeTab, setActiveTab] = useState("basic");
   const keys = keyboardTabs[activeTab];
   const isScientificTab = activeTab === "scientific";
 
   return (
-    <aside className="fixed inset-x-0 bottom-0 z-30 border-t border-brand-line/70 bg-white/60 px-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-lg sm:px-4">
+    <aside className="fixed inset-x-0 bottom-[5.75rem] z-30 border-t border-brand-line/70 bg-white/60 px-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-lg sm:bottom-24 sm:px-4">
       <div className="app-shell mx-auto flex max-h-[40vh] flex-col overflow-y-auto rounded-t-[1.75rem] border border-white/60 bg-white/65 px-2 pt-2 shadow-[0_-18px_60px_rgba(15,23,42,0.12)] backdrop-blur-lg scrollbar-hide sm:max-h-[42vh] sm:rounded-t-[2rem] sm:px-3">
         <div className="mb-1.5 flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-1 rounded-full bg-white p-1 shadow-sm">
@@ -186,15 +203,37 @@ export const MathKeyboard = ({ onKeyPress, onDelete, onSolve, disabled = false }
             })}
           </div>
 
-          <button
-            type="button"
-            onClick={onDelete}
-            disabled={disabled}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:w-10 sm:rounded-2xl"
-            aria-label="Delete symbol"
-          >
-            <Delete className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={onMoveLeft}
+              disabled={disabled || !canMoveLeft}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm disabled:cursor-not-allowed disabled:opacity-40 sm:h-10 sm:w-10 sm:rounded-2xl"
+              aria-label="Move cursor left"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+
+            <button
+              type="button"
+              onClick={onMoveRight}
+              disabled={disabled || !canMoveRight}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm disabled:cursor-not-allowed disabled:opacity-40 sm:h-10 sm:w-10 sm:rounded-2xl"
+              aria-label="Move cursor right"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+
+            <button
+              type="button"
+              onClick={onDelete}
+              disabled={disabled}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:w-10 sm:rounded-2xl"
+              aria-label="Delete symbol"
+            >
+              <Delete className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-4 gap-1.5 pb-2">

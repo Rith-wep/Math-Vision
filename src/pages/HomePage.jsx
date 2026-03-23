@@ -44,6 +44,22 @@ const homeCards = [
   }
 ];
 
+const heroSymbols = {
+  sigma: "\u2211",
+  integral: "\u222b",
+  pi: "\u03c0",
+  root: "\u221a",
+  delta: "\u0394",
+  infinity: "\u221e",
+  partial: "\u2202",
+  approx: "\u2248",
+  theta: "\u03b8",
+  minus: "\u2212",
+  times: "\u00d7",
+  divide: "\u00f7",
+  xSquared: "x\u00b2"
+};
+
 export const HomePage = () => {
   const navigate = useNavigate();
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -69,27 +85,38 @@ export const HomePage = () => {
         <ScanHeader />
 
         <main className="flex-1 px-4 py-4 md:px-5 lg:px-6">
-          <section className="premium-surface relative overflow-hidden rounded-[2rem] border border-green-100/80 bg-gradient-to-br from-white via-white to-green-50 px-8 py-7">
-            <div className="pointer-events-none absolute inset-x-10 top-0 h-24 rounded-full bg-green-100/50 blur-3xl" />
-            <div className="relative animate-pulse inline-flex items-center gap-2 rounded-full border border-green-100 bg-white/90 px-3 py-1 text-[10px] font-medium text-green-700 shadow-[0_0_18px_rgba(34,197,94,0.12)]">
-              <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
-              AI Learning Hub
+          <section className="premium-surface relative overflow-hidden rounded-[2rem] border border-green-100/80 bg-gradient-to-br from-white via-white to-green-50 px-7 py-6">
+
+            {/* GLASS OVERLAY */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/70 via-white/50 to-green-50/60 backdrop-blur-[1px]" />
+
+            {/* CONTENT */}
+            <div className="relative">
+
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 rounded-full border border-green-100 bg-white/90 px-3 py-1 text-[10px] font-medium text-green-700 shadow-[0_0_18px_rgba(34,197,94,0.15)] animate-pulse">
+                <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
+                AI Learning Hub
+              </div>
+
+              {/* Title */}
+              <h1 className="mt-3 max-w-[14ch] text-2xl sm:text-4xl font-bold leading-relaxed text-[#14532d]">
+                រៀនគណិតវិទ្យាកាន់តែងាយស្រួល
+              </h1>
+
+              {/* Description */}
+              <p className="mt-3 max-w-[34ch] text-sm leading-relaxed text-slate-600">
+                ស្វែងរកដំណោះស្រាយលំហាត់ និងធនធានសិក្សាសម្បូរបែបជាមួយ{" "}
+                <span className="italic underline decoration-green-300 decoration-2 underline-offset-4">
+                  Math Vision
+                </span>
+                ។
+              </p>
+
             </div>
-
-            <h1 className="relative mt-3 max-w-[12ch] text-4xl font-bold leading-relaxed text-[#14532d] [text-shadow:0_1px_0_rgba(255,255,255,0.55)]">
-              រៀនគណិតវិទ្យាកាន់តែងាយស្រួល
-            </h1>
-
-            <p className="relative mt-3 max-w-[31ch] text-sm leading-relaxed text-slate-600">
-              ស្វែងរកដំណោះស្រាយលំហាត់ និងធនធានសិក្សាសម្បូរបែបជាមួយ{" "}
-              <span className="italic underline decoration-green-300 decoration-2 underline-offset-4">
-                Math Vision
-              </span>
-              ។
-            </p>
           </section>
 
-          <section className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2">
+          <section className="mt-4 grid grid-cols-1 gap-2.5 md:grid-cols-2">
             {homeCards.map((card, index) => {
               const Icon = card.icon;
 
@@ -102,9 +129,9 @@ export const HomePage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: 0.08 * index, ease: "easeOut" }}
                   whileTap={{ scale: 0.98 }}
-                  className="premium-card w-full rounded-[2rem] border border-green-100/80 bg-white/95 p-3.5 text-left transition hover:-translate-y-[1px] hover:border-green-200 hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]"
+                  className="premium-card w-full rounded-[2rem] border border-green-100/80 bg-white/95 p-3 text-left transition hover:-translate-y-[1px] hover:border-green-200 hover:shadow-[0_18px_36px_rgba(15,23,42,0.08)]"
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-2.5">
                     <div
                       className={`green-soft-glow flex h-11 w-11 shrink-0 items-center justify-center rounded-[1.15rem] bg-gradient-to-br ${card.accent} text-white`}
                     >
@@ -123,7 +150,7 @@ export const HomePage = () => {
                         <ChevronRight className="mt-0.5 h-4.5 w-4.5 text-slate-300" />
                       </div>
 
-                      <div className="mt-2.5 inline-flex items-center rounded-full border border-green-100 bg-green-50/80 px-3 py-1 text-[11px] font-medium text-green-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+                      <div className="mt-2 inline-flex items-center rounded-full border border-green-100 bg-green-50/80 px-3 py-1 text-[11px] font-medium text-green-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
                         {card.actionLabel}
                       </div>
                     </div>

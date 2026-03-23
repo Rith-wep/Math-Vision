@@ -224,27 +224,27 @@ const SkeletonBlock = ({ className = "" }) => (
 
 const SolutionSkeleton = () => {
   return (
-    <div className="mt-5 space-y-5">
-      <section className="rounded-3xl border border-green-100 bg-white p-5 shadow-sm">
+    <div className="mt-4 space-y-4">
+      <section className="rounded-3xl border border-green-100 bg-white p-4 shadow-sm">
         <SkeletonBlock className="h-4 w-28" />
-        <div className="mt-3 rounded-2xl border border-green-100 bg-green-50 px-4 py-4">
+        <div className="mt-3 rounded-2xl border border-green-100 bg-green-50 px-4 py-3.5">
           <SkeletonBlock className="mx-auto h-10 w-44" />
         </div>
       </section>
 
-      <section className="rounded-3xl border border-green-100 bg-white p-5 shadow-sm">
+      <section className="rounded-3xl border border-green-100 bg-white p-4 shadow-sm">
         <div className="flex items-center justify-between gap-3">
           <SkeletonBlock className="h-5 w-36" />
           <SkeletonBlock className="h-7 w-24 rounded-full" />
         </div>
 
-        <div className="mt-5 space-y-5">
+        <div className="mt-4 space-y-4">
           {[1, 2].map((step) => (
             <div key={step} className="relative pl-14">
               <div className="absolute left-0 top-1 h-10 w-10 rounded-full bg-green-100" />
-              <div className="rounded-3xl border border-green-100 bg-white px-5 py-5 shadow-sm">
+              <div className="rounded-3xl border border-green-100 bg-white px-4 py-4 shadow-sm">
                 <SkeletonBlock className="h-16 w-full bg-green-50" />
-                <div className="mt-4 space-y-2 rounded-2xl bg-slate-50 px-4 py-4">
+                <div className="mt-3 space-y-2 rounded-2xl bg-slate-50 px-4 py-3.5">
                   <SkeletonBlock className="h-4 w-11/12" />
                   <SkeletonBlock className="h-4 w-10/12" />
                   <SkeletonBlock className="h-4 w-8/12" />
@@ -255,7 +255,7 @@ const SolutionSkeleton = () => {
         </div>
       </section>
 
-      <section className="rounded-3xl border border-green-100 bg-white p-5 shadow-sm">
+      <section className="rounded-3xl border border-green-100 bg-white p-4 shadow-sm">
         <div className="border-l-4 border-green-200 pl-4">
           <SkeletonBlock className="h-3 w-20" />
           <SkeletonBlock className="mt-3 h-10 w-40" />
@@ -424,10 +424,10 @@ export const SolutionPage = () => {
         </div>
       </header>
 
-      <main ref={pageRef} className="app-shell-page mx-auto px-4 py-5 md:px-5 lg:px-6">
-        <section className="rounded-3xl border border-green-100 bg-white p-5 shadow-sm">
+      <main ref={pageRef} className="app-shell-page mx-auto px-4 py-4 md:px-5 lg:px-6">
+        <section className="rounded-3xl border border-green-100 bg-white p-4 shadow-sm">
           <p className="text-sm font-semibold leading-relaxed text-green-900">សំណួររបស់អ្នក</p>
-          <div className="mt-3 rounded-2xl border border-green-100 bg-green-50 px-4 py-4 text-center">
+          <div className="mt-3 rounded-2xl border border-green-100 bg-green-50 px-4 py-3.5 text-center">
             <div className="overflow-x-auto font-mono text-lg text-slate-900">
               <BlockMath math={cleanExpression} />
             </div>
@@ -441,7 +441,7 @@ export const SolutionPage = () => {
             initial={{ x: 0 }}
             animate={{ x: [0, -10, 10, -8, 8, 0] }}
             transition={{ duration: 0.35 }}
-            className="mt-5 rounded-3xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            className="mt-4 rounded-3xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
           >
             {errorMessage}
           </motion.div>
@@ -449,7 +449,7 @@ export const SolutionPage = () => {
 
         {!isLoading && solution && (
           <>
-            <section className="mt-6">
+            <section className="mt-5">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <h2 className="text-lg font-semibold text-green-900">Step-by-Step Solution</h2>
                 <div className="inline-flex items-center gap-1.5 rounded-full border border-green-100 bg-white px-3 py-1 text-[11px] font-medium text-green-700 shadow-sm">
@@ -462,7 +462,7 @@ export const SolutionPage = () => {
                 variants={timelineVariants}
                 initial="hidden"
                 animate="show"
-                className="space-y-5"
+                className="space-y-4"
               >
                 {solution.steps.map((step, index) => (
                   <motion.article
@@ -478,12 +478,12 @@ export const SolutionPage = () => {
                       {step.step || index + 1}
                     </div>
 
-                    <div className="rounded-3xl border border-green-100 bg-white px-5 py-5 shadow-sm">
-                      <div className="overflow-x-auto rounded-2xl bg-green-50 px-4 py-4">
+                    <div className="rounded-3xl border border-green-100 bg-white px-4 py-4 shadow-sm">
+                      <div className="overflow-x-auto rounded-2xl bg-green-50 px-4 py-3.5">
                         <BlockMath math={sanitizeLatex(getStepFormula(step))} />
                       </div>
 
-                      <div className="mt-4 rounded-2xl bg-slate-50 px-4 py-4">
+                      <div className="mt-3 rounded-2xl bg-slate-50 px-4 py-3.5">
                         <div className="space-y-2 text-sm leading-relaxed text-slate-700">
                           {renderKhmerExplanation(getStepExplanation(step))}
                         </div>
@@ -495,7 +495,7 @@ export const SolutionPage = () => {
             </section>
 
             {graphData.length > 0 && (
-              <section className="mt-6 rounded-3xl border border-green-100 bg-white p-5 shadow-sm">
+              <section className="mt-5 rounded-3xl border border-green-100 bg-white p-4 shadow-sm">
                 <p className="text-sm font-semibold text-green-900">2D Graph</p>
                 <div className="mt-3 h-64 rounded-2xl bg-green-50 p-3">
                   <ResponsiveContainer width="100%" height="100%">
@@ -517,7 +517,7 @@ export const SolutionPage = () => {
               </section>
             )}
 
-            <section className="mt-6 rounded-3xl border border-green-100 bg-white p-5 shadow-sm">
+            <section className="mt-5 rounded-3xl border border-green-100 bg-white p-4 shadow-sm">
               <div className="border-l-4 border-green-500 pl-4">
                 <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
                   Result

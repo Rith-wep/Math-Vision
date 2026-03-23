@@ -134,13 +134,13 @@ export const HistoryPage = () => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -16 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
-      className="min-h-screen bg-gradient-to-b from-green-50 to-white"
-      style={{ fontFamily: '"Inter", "Kantumruy Pro", sans-serif' }}
+      className="min-h-screen overflow-x-hidden bg-gradient-to-b from-green-50 to-white"
+      style={{ fontFamily: '"Koh Santepheap", "Inter", "Kantumruy Pro", sans-serif' }}
     >
-      <div className="app-shell-page mx-auto min-h-screen bg-white">
+      <div className="app-shell-page mx-auto min-h-screen overflow-x-hidden bg-white">
         <ScanHeader />
 
-        <main className="px-4 py-5 md:px-5 lg:px-6">
+        <main className="overflow-x-hidden px-4 py-4 md:px-5 lg:px-6">
           <button
             type="button"
             onClick={() => navigate("/")}
@@ -150,10 +150,10 @@ export const HistoryPage = () => {
             <span>Back to Home</span>
           </button>
 
-          <section className="rounded-[2rem] border border-green-100 bg-gradient-to-br from-green-50 via-white to-white p-5 shadow-sm">
+          <section className="rounded-[2rem] border border-green-100 bg-gradient-to-br from-green-50 via-white to-white p-4 shadow-sm">
             <h1 className="font-brand text-2xl leading-relaxed text-green-900">My History</h1>
             <p className="mt-1 text-sm leading-relaxed text-slate-500">
-              Review all previously solved problems and their latest results.
+              ពិនិត្យឡើងវិញនូវរាល់វិញ្ញាសាដែលបានដោះស្រាយ...
             </p>
 
             <label className="mt-4 flex items-center gap-2 rounded-full border border-green-100 bg-white px-4 py-3 shadow-sm">
@@ -161,13 +161,13 @@ export const HistoryPage = () => {
               <input
                 value={searchValue}
                 onChange={(event) => setSearchValue(event.target.value)}
-                placeholder="Search solved problems..."
+                placeholder="ស្វែងរកប្រវត្តិលំហាត់..."
                 className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
               />
             </label>
           </section>
 
-          <section className="mt-4 space-y-5">
+          <section className="mt-4 space-y-4">
             {isLoading ? (
               <div className="rounded-[2rem] border border-green-100 bg-white p-4 text-sm text-slate-500 shadow-sm">
                 Loading history...
@@ -183,7 +183,7 @@ export const HistoryPage = () => {
                   <motion.div
                     animate={{ y: [0, -6, 0], rotate: [-8, -4, -8] }}
                     transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
-                    className="relative flex h-32 w-32 items-center justify-center"
+                    className="relative flex h-24 w-24 items-center justify-center"
                   >
                     <div className="absolute inset-4 rounded-full bg-green-100/80 blur-2xl" />
                     <div className="absolute bottom-4 h-3 w-20 rounded-full bg-green-100/80 blur-md" />
@@ -203,8 +203,7 @@ export const HistoryPage = () => {
                   មិនទាន់មានប្រវត្តិដោះស្រាយលំហាត់
                 </h2>
                 <p className="mt-2 text-sm font-light leading-relaxed text-slate-500">
-                  ចាប់ផ្ដើមដោះស្រាយលំហាត់ជាមួយ Math Vision ឥឡូវនេះ ដើម្បីតាមដានការរីកចម្រើនរបស់អ្នក!
-                </p>
+                      ដោះស្រាយវិញ្ញាសាជាមួយ Math Vision ដើម្បីវាស់ស្ទង់វឌ្ឍនភាពរបស់អ្នក!                </p>
 
                 <button
                   type="button"
@@ -234,7 +233,7 @@ export const HistoryPage = () => {
                       return (
                         <article
                           key={item.id}
-                          className="relative flex flex-col rounded-3xl border border-white/60 bg-white/70 p-5 shadow-sm backdrop-blur-md"
+                          className="relative flex min-w-0 flex-col overflow-hidden rounded-3xl border border-white/60 bg-white/70 p-4 shadow-sm backdrop-blur-md"
                         >
                           <div className="flex items-center justify-between gap-3">
                             <div className="rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
@@ -251,12 +250,12 @@ export const HistoryPage = () => {
                             </button>
                           </div>
 
-                          <div className="mt-5 text-center">
-                            <div className="overflow-x-auto text-xl font-semibold text-slate-900">
+                          <div className="mt-4 min-w-0 text-center">
+                            <div className="max-w-full overflow-x-auto overflow-y-hidden text-xl font-semibold text-slate-900">
                               <BlockMath math={sanitizeLatex(questionText)} />
                             </div>
 
-                            <div className="mt-4 overflow-x-auto text-base text-blue-500">
+                            <div className="mt-3 max-w-full overflow-x-auto overflow-y-hidden text-base text-blue-500">
                               {finalAnswer ? (
                                 <BlockMath math={sanitizeLatex(finalAnswer)} />
                               ) : (
@@ -265,19 +264,19 @@ export const HistoryPage = () => {
                             </div>
                           </div>
 
-                          <div className="mt-6 flex items-center justify-between gap-3">
-                            <div className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs text-slate-400">
+                          <div className="mt-5 flex min-w-0 flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="inline-flex min-w-0 items-center gap-1.5 text-xs text-slate-400">
                               <Clock3 className="h-3.5 w-3.5" />
-                              <span>{formatSolvedAt(item.solvedAt)}</span>
+                              <span className="truncate">{formatSolvedAt(item.solvedAt)}</span>
                             </div>
 
-                            <div className="flex items-center gap-2">
+                            <div className="flex min-w-0 items-center gap-2 self-stretch sm:self-auto">
                               <button
                                 type="button"
                                 onClick={() =>
                                   navigate(`/solve?expression=${encodeURIComponent(questionText)}`)
                                 }
-                                className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-green-200 bg-white px-3.5 text-sm font-semibold text-green-700 transition hover:bg-green-50"
+                                className="inline-flex h-10 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl border border-green-200 bg-white px-3.5 text-sm font-semibold text-green-700 transition hover:bg-green-50 sm:flex-none"
                               >
                                 <RotateCcw className="h-4 w-4" />
                                 <span>Again</span>
@@ -288,7 +287,7 @@ export const HistoryPage = () => {
                                 onClick={() =>
                                   navigate(`/solution?expression=${encodeURIComponent(questionText)}`)
                                 }
-                                className="inline-flex h-10 items-center justify-center rounded-xl bg-green-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-green-700"
+                                className="inline-flex h-10 min-w-0 flex-1 items-center justify-center rounded-xl bg-green-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-green-700 sm:flex-none"
                               >
                                 <span>View</span>
                               </button>

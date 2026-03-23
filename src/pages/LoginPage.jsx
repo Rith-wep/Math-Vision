@@ -5,6 +5,7 @@ import { ArrowLeft, LockKeyhole, Mail, UserRound } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext.jsx";
+import { toKhmerErrorMessage } from "../utils/errorMessages.js";
 
 const GoogleIcon = () => (
   <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
@@ -137,8 +138,10 @@ export const LoginPage = () => {
       navigate("/");
     } catch (error) {
       const nextError = axios.isAxiosError(error)
-        ? error.response?.data?.message || "Authentication failed. Please try again."
-        : "Authentication failed. Please try again.";
+        ? toKhmerErrorMessage(
+            error.response?.data?.message || error.message || "Authentication failed. Please try again."
+          )
+        : toKhmerErrorMessage("Authentication failed. Please try again.");
 
       setFormError(nextError);
     } finally {
@@ -153,7 +156,7 @@ export const LoginPage = () => {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(187,247,208,0.55),_transparent_38%),linear-gradient(180deg,#f0fdf4_0%,#ffffff_52%,#f8fafc_100%)] px-4 py-6"
-      style={{ fontFamily: '"Kantumruy Pro", sans-serif' }}
+      style={{ fontFamily: '"Koh Santepheap", "Kantumruy Pro", sans-serif' }}
     >
       <div className="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-[450px] flex-col justify-center">
         <button

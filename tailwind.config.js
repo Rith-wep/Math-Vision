@@ -4,8 +4,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Kantumruy Pro", "sans-serif"],
-        brand: ["Moul", "Kantumruy Pro", "sans-serif"]
+        sans: ["Inter", "Koh Santepheap", "sans-serif"],
+        brand: ["Moul", "Koh Santepheap", "sans-serif"]
       },
       colors: {
         brand: {

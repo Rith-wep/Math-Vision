@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 
 import { ScanHeader } from "../components/ScanHeader.jsx";
 import { formulaService } from "../services/formulaService.js";
+import { toKhmerErrorMessage } from "../utils/errorMessages.js";
 
 const defaultCategories = ["ទាំងអស់", "ពិជគណិត", "ធរណីមាត្រ", "វិភាគ"];
 
@@ -72,7 +73,9 @@ export const DocsPage = () => {
         const data = await formulaService.getAll();
         setDocuments(data);
       } catch (error) {
-        setErrorMessage("Unable to load math resources right now.");
+        setErrorMessage(
+          toKhmerErrorMessage(error.response?.data?.message || "Unable to load math resources right now.")
+        );
       } finally {
         setIsLoading(false);
       }
@@ -127,12 +130,12 @@ export const DocsPage = () => {
       exit={{ opacity: 0, y: -16 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
       className="min-h-screen bg-gradient-to-b from-green-50 to-white"
-      style={{ fontFamily: '"Kantumruy Pro", sans-serif' }}
+      style={{ fontFamily: '"Koh Santepheap", "Kantumruy Pro", sans-serif' }}
     >
       <div className="app-shell-page mx-auto min-h-screen bg-white">
         <ScanHeader />
 
-        <main className="px-4 py-5 md:px-5 lg:px-6">
+        <main className="px-4 py-4 md:px-5 lg:px-6">
           <button
             type="button"
             onClick={() => navigate("/")}
@@ -142,7 +145,7 @@ export const DocsPage = () => {
             <span>Back</span>
           </button>
 
-          <section className="rounded-[2rem] border border-green-100 bg-white p-5 shadow-sm">
+          <section className="rounded-[2rem] border border-green-100 bg-white p-4 shadow-sm">
             <h1 className="text-2xl font-extrabold tracking-tight text-green-900">
               បណ្ណាល័យឯកសារគណិតវិទ្យា
             </h1>
@@ -176,19 +179,19 @@ export const DocsPage = () => {
           </section>
 
           {isLoading && (
-            <div className="mt-5 rounded-3xl border border-green-100 bg-white p-4 text-sm text-slate-600 shadow-sm">
+            <div className="mt-4 rounded-3xl border border-green-100 bg-white p-4 text-sm text-slate-600 shadow-sm">
               Loading resources...
             </div>
           )}
 
           {!isLoading && errorMessage && (
-            <div className="mt-5 rounded-3xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            <div className="mt-4 rounded-3xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
               {errorMessage}
             </div>
           )}
 
           {!isLoading && !errorMessage && (
-            <section className="mt-5">
+            <section className="mt-4">
               {filteredDocuments.length === 0 ? (
                 <motion.div
                   initial={{ opacity: 0, y: 12 }}
@@ -225,7 +228,7 @@ export const DocsPage = () => {
                       <motion.article
                         key={formula._id || `${formula.title_kh}-${formula.grade}`}
                         whileTap={{ scale: 0.95 }}
-                        className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm"
+                        className="rounded-3xl border border-slate-100 bg-white p-3.5 shadow-sm"
                       >
                         <div
                           className={`flex h-16 w-16 items-center justify-center rounded-2xl ${

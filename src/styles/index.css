@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Kantumruy+Pro:wght@400;500;600;700&family=Moul&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Koh+Santepheap:wght@100;300;400;700;900&family=Moul&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -10,10 +10,8 @@ html {
 
 body {
   margin: 0;
-  font-family: "Kantumruy Pro", sans-serif;
-  background:
-    radial-gradient(circle at top, rgba(220, 252, 231, 0.65), transparent 34%),
-    linear-gradient(180deg, #f8fff9 0%, #ffffff 48%, #f8fafc 100%);
+  font-family: "Inter", "Koh Santepheap", sans-serif;
+  background: #f8fafc;
   color: #1a1a1a;
   line-height: 1.75;
   -webkit-font-smoothing: antialiased;
@@ -32,6 +30,10 @@ input {
 
 #root {
   min-height: 100vh;
+}
+
+.khmer-font {
+  font-family: "Koh Santepheap", "Inter", sans-serif;
 }
 
 .app-shell {

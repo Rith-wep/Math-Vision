@@ -8,13 +8,13 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { formulaService } from "../services/formulaService.js";
 
 const motivationQuotes = [
-  "Mathematics is the music of reason.",
-  "Small progress in math becomes big confidence over time.",
-  "Every solved problem trains a stronger mind.",
-  "Clarity comes one step at a time.",
-  "Practice turns difficult formulas into familiar patterns.",
-  "Each equation you solve builds real skill.",
-  "Consistency is the secret behind math mastery."
+  "គណិតវិទ្យា គឺជាសិល្បៈនៃតក្កវិជ្ជាដ៏វិសេសវិសាល។",
+  "វឌ្ឍនភាពតូចៗនៅថ្ងៃនេះ គឺជាគ្រឹះនៃទំនុកចិត្តដ៏អស្ចារ្យនៅថ្ងៃស្អែក។",
+  "រាល់វិញ្ញាសាដែលអ្នកយកឈ្នះ គឺជាការសម្រួចបញ្ញាឱ្យកាន់តែមុតស្រួច។",
+  "ពន្លឺនៃចំណេះដឹង កើតចេញពីការបោះជំហានដោយភាពអត់ធ្មត់។",
+  "ការអនុវត្តឥតឈប់ឈរ បំប្លែងភាពស្មុគស្មាញឱ្យទៅជាភាពស្ទាត់ជំនាញ។",
+  "រាល់សមីការដែលអ្នកដោះស្រាយ គឺជាការកសាងអនាគតដ៏រឹងមាំ។",
+  "វិន័យ និងភាពស្ថិតស្ថេរ គឺជាមន្តអាគមដែលនាំទៅរកភាពពូកែ។"
 ];
 
 const buildWeeklyActivity = (weeklySolved) => {
@@ -78,7 +78,7 @@ export const DashboardPage = () => {
   );
 
   const activityPath = useMemo(() => buildLinePath(weeklyActivity), [weeklyActivity]);
-  const displayName = user?.displayName || "Hong Sovannarith";
+  const displayName = user?.displayName || "Smart Learner";
   const avatarUrl =
     user?.avatar ||
     "https://ui-avatars.com/api/?name=Math+Vision&background=dcfce7&color=166534";
@@ -89,14 +89,14 @@ export const DashboardPage = () => {
       label: "Total Problems",
       value: isLoading ? "--" : stats.totalSolved,
       icon: Trophy,
-      subtitle: "All-time solved by Math Vision"
+      subtitle: "វិញ្ញាសាដោះស្រាយរួចសរុប"
     },
     {
       id: "weekly",
       label: "Weekly Solved",
       value: isLoading ? "--" : stats.weeklySolved,
       icon: TrendingUp,
-      subtitle: "Your current 7-day momentum"
+      subtitle: "ស្ថិតិសិក្សាប្រចាំសប្ដាហ៍"
     }
   ];
 
@@ -111,7 +111,7 @@ export const DashboardPage = () => {
       <div className="app-shell-page mx-auto min-h-screen bg-white">
         <ScanHeader />
 
-        <main className="px-4 py-5 md:px-5 lg:px-6">
+        <main className="px-4 py-4 md:px-5 lg:px-6">
           <button
             type="button"
             onClick={() => navigate("/")}
@@ -121,7 +121,7 @@ export const DashboardPage = () => {
             <span>Back to Home</span>
           </button>
 
-          <section className="relative overflow-hidden rounded-[2rem] border border-green-100/80 bg-gradient-to-r from-white via-white to-green-50 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+          <section className="relative overflow-hidden rounded-[2rem] border border-green-100/80 bg-gradient-to-r from-white via-white to-green-50 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
             <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-green-100/40 blur-2xl" />
             <div className="pointer-events-none absolute inset-y-0 right-0 w-28 bg-gradient-to-l from-green-50/70 to-transparent" />
 
@@ -132,7 +132,7 @@ export const DashboardPage = () => {
                 </p>
 
                 <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <h1 className="text-[1.72rem] font-black leading-tight tracking-tight text-slate-900">
+                  <h1 className="text-[1.42rem] font-black leading-tight tracking-tight text-slate-700">
                     {displayName}
                   </h1>
                   <div className="inline-flex items-center gap-1 rounded-full border border-green-100 bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-green-700 shadow-sm">
@@ -141,10 +141,9 @@ export const DashboardPage = () => {
                   </div>
                 </div>
 
-                <p className="mt-3 max-w-[15rem] text-sm leading-relaxed text-slate-500">
-                  ថ្ងៃនេះគឺជាថ្ងៃដ៏ល្អសម្រាប់ពង្រឹងចំណេះដឹងគណិតវិទ្យា។
-                </p>
+                
               </div>
+              
 
               <div className="shrink-0 rounded-full bg-white/90 p-1.5 shadow-[0_14px_30px_rgba(15,23,42,0.08)] backdrop-blur-sm">
                 <div className="rounded-full bg-gradient-to-br from-green-400 via-emerald-500 to-green-600 p-[2px]">
@@ -158,17 +157,21 @@ export const DashboardPage = () => {
                   </div>
                 </div>
               </div>
+              
             </div>
+            <p className="mt-2 max-w-[20rem] text-sm leading-relaxed text-slate-500">
+                  តោះ! ពង្រឹងចំណេះដឹងគណិតវិទ្យាជាមួយគ្នាថ្ងៃនេះ
+                </p>
           </section>
 
-          <section className="mt-4 grid grid-cols-2 gap-3">
+          <section className="mt-4 grid grid-cols-2 gap-2.5">
             {statCards.map((card) => {
               const Icon = card.icon;
 
               return (
                 <article
                   key={card.id}
-                  className="relative overflow-hidden rounded-[1.75rem] border border-slate-100/80 bg-white/95 p-4 shadow-[0_18px_35px_rgba(15,23,42,0.05)]"
+                  className="relative overflow-hidden rounded-[1.75rem] border border-slate-100/80 bg-white/95 p-3.5 shadow-[0_18px_35px_rgba(15,23,42,0.05)]"
                 >
                   <div className="pointer-events-none absolute right-0 top-0 h-20 w-20 rounded-full bg-green-50/80 blur-2xl" />
 
@@ -177,7 +180,7 @@ export const DashboardPage = () => {
                       <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-400">
                         {card.label}
                       </p>
-                      <p className="mt-3 bg-gradient-to-br from-green-500 to-green-700 bg-clip-text text-[2.6rem] font-black leading-none text-transparent">
+                      <p className="mt-2.5 bg-gradient-to-br from-green-500 to-green-700 bg-clip-text text-[2.45rem] font-black leading-none text-transparent">
                         {card.value}
                       </p>
                     </div>
@@ -187,7 +190,7 @@ export const DashboardPage = () => {
                     </div>
                   </div>
 
-                  <p className="mt-4 max-w-[12rem] text-xs leading-relaxed text-slate-500">
+                  <p className="mt-3 max-w-[12rem] text-xs leading-relaxed text-slate-500">
                     {card.subtitle}
                   </p>
                 </article>
@@ -195,12 +198,12 @@ export const DashboardPage = () => {
             })}
           </section>
 
-          <section className="mt-4 rounded-[1.75rem] border border-slate-100/80 bg-white/95 p-4 shadow-[0_18px_35px_rgba(15,23,42,0.05)]">
+          <section className="mt-4 rounded-[1.75rem] border border-slate-100/80 bg-white/95 p-3.5 shadow-[0_18px_35px_rgba(15,23,42,0.05)]">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h2 className="text-sm font-semibold text-green-900">Weekly Activity</h2>
                 <p className="mt-1 text-xs leading-relaxed text-slate-500">
-                  Your last 7 days of math solving progress.
+                  ស្ថិតិដោះស្រាយលំហាត់ប្រចាំសប្ដាហ៍
                 </p>
               </div>
               <div className="rounded-full border border-green-100 bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
@@ -208,7 +211,7 @@ export const DashboardPage = () => {
               </div>
             </div>
 
-            <div className="mt-4 overflow-hidden rounded-3xl border border-green-100/70 bg-gradient-to-b from-green-50 via-white to-white p-3">
+            <div className="mt-3 overflow-hidden rounded-3xl border border-green-100/70 bg-gradient-to-b from-green-50 via-white to-white p-3">
               <svg
                 viewBox="0 0 336 140"
                 className="h-40 w-full"
@@ -270,7 +273,7 @@ export const DashboardPage = () => {
             </div>
           </section>
 
-          <section className="mt-4 rounded-[1.75rem] border border-slate-100/80 bg-gradient-to-br from-white via-green-50 to-white p-4 shadow-[0_18px_35px_rgba(15,23,42,0.05)]">
+          <section className="mt-4 rounded-[1.75rem] border border-slate-100/80 bg-gradient-to-br from-white via-green-50 to-white p-3.5 shadow-[0_18px_35px_rgba(15,23,42,0.05)]">
             <div className="flex items-center gap-2">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/80 bg-white text-green-700 shadow-sm">
                 <Quote className="h-4 w-4" />

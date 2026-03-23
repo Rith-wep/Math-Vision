@@ -270,7 +270,7 @@ export const QcmPage = () => {
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50 text-green-600">
           <Lock className="h-7 w-7" />
         </div>
-        <h1 className="mt-4 text-2xl font-bold text-slate-900">ចូលប្រើប្រាស់ដើម្បីចាប់ផ្តើម QCM</h1>
+        <h1 className="mt-4 text-xl font-bold text-slate-700">Sign in to start your math journey.</h1>
         <p className="mt-2 text-sm leading-relaxed text-slate-500">
           ត្រូវចូលគណនីជាមុនសិន ដើម្បីមើលមុខវិជ្ជា កម្រិត និងសំណួរប្រឡងរបស់អ្នក។
         </p>
