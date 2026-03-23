@@ -67,6 +67,18 @@ export const AuthProvider = ({ children }) => {
     window.location.href = authService.getGoogleLoginUrl();
   };
 
+  const loginWithPassword = async (credentials) => {
+    const response = await authService.login(credentials);
+    persistAuth(response.token, response.user);
+    return response;
+  };
+
+  const registerWithPassword = async (payload) => {
+    const response = await authService.register(payload);
+    persistAuth(response.token, response.user);
+    return response;
+  };
+
   const completeGoogleAuth = ({ nextToken, nextUser }) => {
     persistAuth(nextToken, nextUser);
   };
@@ -86,6 +98,8 @@ export const AuthProvider = ({ children }) => {
       isAuthenticated: Boolean(user && token),
       isAuthLoading,
       loginWithGoogle,
+      loginWithPassword,
+      registerWithPassword,
       completeGoogleAuth,
       logout
     }),

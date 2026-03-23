@@ -1,11 +1,49 @@
 import axios from "axios";
 
-const backendBaseUrl = import.meta.env.VITE_BACKEND_URL
-  || (import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api").replace(/\/api\/?$/, "");
+const resolveBackendBaseUrl = () => {
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+
+  if (backendUrl) {
+    return backendUrl.replace(/\/$/, "");
+  }
+
+  if (apiBaseUrl) {
+    return apiBaseUrl.replace(/\/api\/?$/, "");
+  }
+
+  if (import.meta.env.DEV) {
+    return "http://localhost:5000";
+  }
+
+  throw new Error("Missing VITE_BACKEND_URL or VITE_API_BASE_URL in production.");
+};
+
+const backendBaseUrl = resolveBackendBaseUrl();
 
 export const authService = {
   getGoogleLoginUrl() {
     return `${backendBaseUrl}/auth/google`;
+  },
+
+  async login(payload) {
+    const response = await axios.post(`${backendBaseUrl}/auth/login`, payload, {
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+
+    return response.data;
+  },
+
+  async register(payload) {
+    const response = await axios.post(`${backendBaseUrl}/auth/register`, payload, {
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+
+    return response.data;
   },
 
   async getCurrentUser(token) {

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import axios from "axios";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, LockKeyhole, Mail, UserRound } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -81,23 +82,30 @@ const getPasswordStrength = (value) => {
   }
 
   if (value.length < 6) {
-    return { width: "33%", color: "bg-red-400", label: "ខ្សោយ" };
+    return { width: "33%", color: "bg-red-400", label: "Weak" };
   }
 
   if (value.length < 10) {
-    return { width: "66%", color: "bg-amber-400", label: "មធ្យម" };
+    return { width: "66%", color: "bg-amber-400", label: "Medium" };
   }
 
-  return { width: "100%", color: "bg-emerald-500", label: "រឹងមាំ" };
+  return { width: "100%", color: "bg-emerald-500", label: "Strong" };
 };
 
 export const LoginPage = () => {
   const navigate = useNavigate();
-  const { loginWithGoogle, isAuthLoading } = useAuth();
+  const {
+    loginWithGoogle,
+    loginWithPassword,
+    registerWithPassword,
+    isAuthLoading
+  } = useAuth();
   const [mode, setMode] = useState("login");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
 
   const isSignup = mode === "signup";
   const passwordStrength = useMemo(() => getPasswordStrength(password), [password]);
@@ -107,8 +115,35 @@ export const LoginPage = () => {
     ? "ចាប់ផ្ដើមដំណើរសិក្សាជាមួយ Math Vision ថ្ងៃនេះ"
     : "ចូលប្រើប្រាស់ដើម្បីបន្តការសិក្សា";
 
-  const handleEmailSubmit = (event) => {
+  const handleEmailSubmit = async (event) => {
     event.preventDefault();
+    setFormError("");
+    setIsSubmitting(true);
+
+    try {
+      if (isSignup) {
+        await registerWithPassword({
+          displayName: fullName,
+          email,
+          password
+        });
+      } else {
+        await loginWithPassword({
+          email,
+          password
+        });
+      }
+
+      navigate("/");
+    } catch (error) {
+      const nextError = axios.isAxiosError(error)
+        ? error.response?.data?.message || "Authentication failed. Please try again."
+        : "Authentication failed. Please try again.";
+
+      setFormError(nextError);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -151,7 +186,7 @@ export const LoginPage = () => {
               onSubmit={handleEmailSubmit}
               className="mt-7 space-y-3.5"
             >
-              {isSignup && (
+              {isSignup ? (
                 <label className="flex items-center gap-3 rounded-2xl border border-transparent bg-slate-50 px-4 py-3 transition focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500/10">
                   <UserRound className="h-4 w-4 stroke-[1.75] text-slate-400" />
                   <input
@@ -162,7 +197,7 @@ export const LoginPage = () => {
                     className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
                   />
                 </label>
-              )}
+              ) : null}
 
               <label className="flex items-center gap-3 rounded-2xl border border-transparent bg-slate-50 px-4 py-3 transition focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500/10">
                 <Mail className="h-4 w-4 stroke-[1.75] text-slate-400" />
@@ -187,7 +222,7 @@ export const LoginPage = () => {
                   />
                 </label>
 
-                {isSignup && (
+                {isSignup ? (
                   <div className="mt-2 px-1">
                     <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
                       <div
@@ -199,14 +234,32 @@ export const LoginPage = () => {
                       {passwordStrength.label}
                     </div>
                   </div>
-                )}
+                ) : null}
               </div>
+
+              {formError ? (
+                <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                  {formError}
+                </div>
+              ) : null}
+
+              <button
+                type="submit"
+                disabled={isSubmitting || isAuthLoading}
+                className="inline-flex w-full items-center justify-center rounded-2xl bg-emerald-500 px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isSubmitting
+                  ? "Please wait..."
+                  : isSignup
+                    ? "ចុះឈ្មោះឥឡូវនេះ"
+                    : "Login"}
+              </button>
             </motion.form>
           </AnimatePresence>
 
           <div className={`${isSignup ? "mt-7 mb-5" : "mt-8 mb-5"} flex items-center gap-3`}>
             <div className="h-px flex-1 bg-slate-100" />
-            <span className="mt-3 flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-xs font-medium text-slate-400">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-xs font-medium text-slate-400">
               ឬ
             </span>
             <div className="h-px flex-1 bg-slate-100" />
