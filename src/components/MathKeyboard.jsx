@@ -1,166 +1,202 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import {
-  Calculator,
-  ChevronLeft,
-  ChevronRight,
-  Delete,
-  Equal,
-  FlaskConical,
-  Sparkles
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, Delete, Sparkles } from "lucide-react";
 
-const tabConfig = {
-  basic: {
+const buildKey = (config) => {
+  if (!config.template) {
+    return config;
+  }
+
+  const caretOffset = config.template.indexOf("|");
+
+  return {
+    ...config,
+    value: config.template.replace("|", ""),
+    caretOffset: caretOffset >= 0 ? caretOffset : undefined
+  };
+};
+
+const solveKey = {
+  label: "Solve",
+  featured: true,
+  icon: Sparkles
+};
+
+const categoryConfig = {
+  operators: {
     label: "Basic",
-    icon: Calculator
+    columns: 6
   },
-  scientific: {
-    label: "Scientific",
-    icon: FlaskConical
+  functions: {
+    label: "Algebra",
+    columns: 6
+  },
+  trig: {
+    label: "Trig",
+    columns: 6
+  },
+  advanced: {
+    label: "Calculus",
+    columns: 5
   }
 };
 
-const keyboardTabs = {
-  basic: [
-    { label: "7", value: "7" },
-    { label: "8", value: "8" },
-    { label: "9", value: "9" },
-    { label: "+", value: "+" },
-    { label: "4", value: "4" },
-    { label: "5", value: "5" },
-    { label: "6", value: "6" },
-    { label: "-", value: "-" },
-    { label: "1", value: "1" },
-    { label: "2", value: "2" },
-    { label: "3", value: "3" },
-    { label: "×", value: "\\times ", type: "multiply" },
-    { label: "0", value: "0" },
-    { label: "x", value: "x" },
-    { label: "y", value: "y" },
-    { label: "÷", value: "\\div ", type: "divide" },
-    { label: "(", value: "(" },
-    { label: ")", value: ")" },
-    { label: ".", value: "." },
-    { label: "=", value: "=", icon: Equal, featured: true }
+const keyboardLayouts = {
+  operators: [
+    buildKey({ label: "( )", template: "(|)", tone: "function", typography: "math" }),
+    buildKey({ label: ">", value: ">", tone: "function", typography: "math" }),
+    buildKey({ label: "7", value: "7", tone: "number" }),
+    buildKey({ label: "8", value: "8", tone: "number" }),
+    buildKey({ label: "9", value: "9", tone: "number" }),
+    buildKey({ label: "\u00f7", value: "\\div ", tone: "operator", typography: "math", textClass: "text-[24px]" }),
+
+    buildKey({ label: "\u25a1/\u25a1", template: "\\frac{|}{}", tone: "function", typography: "math", textClass: "text-[15px]" }),
+    buildKey({ label: "\u221a", template: "\\sqrt{|}", tone: "function", typography: "math", textClass: "text-[28px]" }),
+    buildKey({ label: "4", value: "4", tone: "number" }),
+    buildKey({ label: "5", value: "5", tone: "number" }),
+    buildKey({ label: "6", value: "6", tone: "number" }),
+    buildKey({ label: "\u00d7", value: "\\times ", tone: "operator", typography: "math", textClass: "text-[24px]" }),
+
+    buildKey({ label: "x\u00b2", value: "x^{2}", tone: "function", typography: "math", textClass: "text-[21px]" }),
+    buildKey({ label: "x", value: "x", tone: "function", typography: "math", textClass: "text-[24px] italic" }),
+    buildKey({ label: "1", value: "1", tone: "number" }),
+    buildKey({ label: "2", value: "2", tone: "number" }),
+    buildKey({ label: "3", value: "3", tone: "number" }),
+    buildKey({ label: "-", value: "-", tone: "operator", typography: "math", textClass: "text-[24px]" }),
+
+    buildKey({ label: "\u03c0", value: "\\pi ", tone: "function", typography: "math", textClass: "text-[28px]" }),
+    buildKey({ label: "%", value: "%", tone: "function" }),
+    buildKey({ label: "0", value: "0", tone: "number" }),
+    buildKey({ label: ".", value: ".", tone: "number" }),
+    buildKey({ label: "=", value: "=", tone: "operator", typography: "math", textClass: "text-[24px]" }),
+    solveKey
   ],
-  scientific: [
-    { label: "√", value: "\\sqrt{}", type: "sqrt" },
-    { label: "x²", value: "x^{2}", textClass: "text-sm" },
-    { label: "^", value: "^{}", textClass: "text-lg" },
-    { label: "∫", value: "\\int ", type: "integral" },
-    { label: "sin", value: "\\sin(", textClass: "text-sm" },
-    { label: "cos", value: "\\cos(", textClass: "text-sm" },
-    { label: "tan", value: "\\tan(", textClass: "text-sm" },
-    { label: "log", value: "\\log(", textClass: "text-sm" },
-    { label: "ln", value: "\\ln(", textClass: "text-sm" },
-    { label: "d/dx", value: "\\frac{d}{dx}", textClass: "text-xs" },
-    { label: "π", value: "\\pi ", type: "pi" },
-    { label: "e", value: "e" },
-    { label: "(", value: "(" },
-    { label: ")", value: ")" },
-    { label: "x", value: "x" },
-    { label: "y", value: "y" },
-    { label: "+", value: "+" },
-    { label: "-", value: "-" },
-    { label: "×", value: "\\times ", type: "multiply" },
-    { label: "=", value: "=", icon: Equal, featured: true }
+  functions: [
+    buildKey({ label: "|x|", template: "\\left| |\\right|", tone: "function", typography: "math" }),
+    buildKey({ label: "f(x)", template: "f(|)", tone: "function", typography: "math" }),
+    buildKey({ label: "log\u2081\u2080", template: "\\log_{10}(|)", tone: "function", textClass: "text-[16px]" }),
+    buildKey({ label: "\u221a", template: "\\sqrt[|]{}", tone: "function", typography: "math", textClass: "text-[28px]" }),
+    buildKey({ label: "i", value: "i", tone: "function", typography: "math", textClass: "text-[24px] italic" }),
+    buildKey({ label: "[ ]", template: "\\left[ |\\right]", tone: "function", typography: "math" }),
+
+    buildKey({ label: "x\u2099", template: "x_{|}", tone: "function", typography: "math", textClass: "text-[20px]" }),
+    buildKey({ label: "( )", template: "(|)", tone: "function", typography: "math" }),
+    buildKey({ label: "log\u2082", template: "\\log_{2}(|)", tone: "function", textClass: "text-[16px]" }),
+    buildKey({ label: "P(x)", template: "P(|)", tone: "function", typography: "math" }),
+    buildKey({ label: "z", value: "z", tone: "function", typography: "math", textClass: "text-[24px] italic" }),
+    buildKey({ label: "!", value: "!", tone: "operator", typography: "math", textClass: "text-[24px]" }),
+
+    buildKey({ label: "e", value: "e", tone: "function", typography: "math", textClass: "text-[24px] italic" }),
+    buildKey({ label: "f(x,y)", template: "f(|,)", tone: "function", typography: "math" }),
+    buildKey({ label: "log\u2090", template: "\\log_{|}()", tone: "function", textClass: "text-[16px]" }),
+    buildKey({ label: "C(x)", template: "C(|)", tone: "function", typography: "math" }),
+    buildKey({ label: "z\u0304", value: "\\bar{z}", tone: "function", typography: "math", textClass: "text-[23px] italic" }),
+    buildKey({ label: "{ }", template: "\\left\\{ |\\right\\}", tone: "function", typography: "math" }),
+
+    buildKey({ label: "exp", template: "\\exp(|)", tone: "secondary" }),
+    buildKey({ label: "(a,b)", template: "(|,)", tone: "function", typography: "math" }),
+    buildKey({ label: "ln", template: "\\ln(|)", tone: "function", textClass: "text-[19px]" }),
+    buildKey({ label: "sign", template: "\\operatorname{sign}(|)", tone: "secondary", textClass: "text-[15px]" }),
+    buildKey({ label: "\u2016 \u2016", template: "\\left\\| |\\right\\|", tone: "function", typography: "math" }),
+    solveKey
+  ],
+  trig: [
+    buildKey({ label: "RAD", value: "\\mathrm{rad}", tone: "secondary", badge: true }),
+    buildKey({ label: "sin", template: "\\sin(|)", tone: "function" }),
+    buildKey({ label: "cos", template: "\\cos(|)", tone: "function" }),
+    buildKey({ label: "tan", template: "\\tan(|)", tone: "function" }),
+    buildKey({ label: "cot", template: "\\cot(|)", tone: "function" }),
+    buildKey({ label: "sec", template: "\\sec(|)", tone: "secondary" }),
+
+    buildKey({ label: "\u00b0", value: "^{\\circ}", tone: "function", typography: "math", textClass: "text-[26px]" }),
+    buildKey({ label: "sin\u207b\u00b9", template: "\\arcsin(|)", tone: "secondary", textClass: "text-[16px]" }),
+    buildKey({ label: "cos\u207b\u00b9", template: "\\arccos(|)", tone: "secondary", textClass: "text-[16px]" }),
+    buildKey({ label: "tan\u207b\u00b9", template: "\\arctan(|)", tone: "secondary", textClass: "text-[16px]" }),
+    buildKey({ label: "cot\u207b\u00b9", template: "\\operatorname{arccot}(|)", tone: "secondary", textClass: "text-[16px]" }),
+    buildKey({ label: "sec\u207b\u00b9", template: "\\operatorname{arcsec}(|)", tone: "secondary", textClass: "text-[16px]" }),
+
+    buildKey({ label: "sinh", template: "\\sinh(|)", tone: "secondary" }),
+    buildKey({ label: "cosh", template: "\\cosh(|)", tone: "secondary" }),
+    buildKey({ label: "tanh", template: "\\tanh(|)", tone: "secondary" }),
+    buildKey({ label: "coth", template: "\\coth(|)", tone: "secondary" }),
+    buildKey({ label: "sech", template: "\\operatorname{sech}(|)", tone: "secondary", textClass: "text-[15px]" }),
+    buildKey({ label: "csch", template: "\\operatorname{csch}(|)", tone: "secondary", textClass: "text-[15px]" }),
+
+    buildKey({ label: "sinh\u207b\u00b9", template: "\\operatorname{arsinh}(|)", tone: "secondary", textClass: "text-[15px]" }),
+    buildKey({ label: "cosh\u207b\u00b9", template: "\\operatorname{arcosh}(|)", tone: "secondary", textClass: "text-[15px]" }),
+    buildKey({ label: "tanh\u207b\u00b9", template: "\\operatorname{artanh}(|)", tone: "secondary", textClass: "text-[15px]" }),
+    buildKey({ label: "coth\u207b\u00b9", template: "\\operatorname{arcoth}(|)", tone: "secondary", textClass: "text-[15px]" }),
+    buildKey({ label: "\u03c0", value: "\\pi ", tone: "function", typography: "math", textClass: "text-[28px]" }),
+    solveKey
+  ],
+  advanced: [
+    buildKey({ label: "lim\u2093\u2192\u2080", template: "\\lim_{x \\to |}", tone: "function", textClass: "text-[15px]" }),
+    buildKey({ label: "dy/dx", template: "\\frac{d}{dx}(|)", tone: "function", textClass: "text-[16px]" }),
+    buildKey({ label: "\u222b", template: "\\int |\\,dx", tone: "function", typography: "math", textClass: "text-[30px]" }),
+    buildKey({ label: "f'(x)", template: "\\frac{dy}{dx}", tone: "function", textClass: "text-[16px]" }),
+    buildKey({ label: "a\u2099", template: "a_{|}", tone: "function", typography: "math", textClass: "text-[20px]" }),
+
+    buildKey({ label: "lim\u207a", template: "\\lim_{x \\to |^{+}}", tone: "secondary", textClass: "text-[15px]" }),
+    buildKey({ label: "d/du", template: "\\frac{d}{d|}()", tone: "secondary", textClass: "text-[16px]" }),
+    buildKey({ label: "\u222b du", template: "\\int ()\\,d|", tone: "secondary", textClass: "text-[16px]" }),
+    buildKey({ label: "dx", value: "dx", tone: "secondary" }),
+    buildKey({ label: "x\u2081,x\u2082", template: "x_{1},x_{2},\\ldots", tone: "secondary", typography: "math", textClass: "text-[15px]" }),
+
+    buildKey({ label: "lim\u207b", template: "\\lim_{x \\to |^{-}}", tone: "secondary", textClass: "text-[15px]" }),
+    buildKey({ label: "d/dy", template: "\\frac{d}{dy}(|)", tone: "secondary", textClass: "text-[16px]" }),
+    buildKey({ label: "\u222b\u2090\u1d47", template: "\\int_{|}^{} ", tone: "secondary", typography: "math", textClass: "text-[19px]" }),
+    buildKey({ label: "dy", value: "dy", tone: "secondary" }),
+    buildKey({ label: "\u2192", value: "\\to ", tone: "function", typography: "math", textClass: "text-[24px]" }),
+
+    buildKey({ label: "\u221e", value: "\\infty ", tone: "function", typography: "math", textClass: "text-[30px]" }),
+    buildKey({ label: "\u03a3", template: "\\sum_{n=1}^{|}", tone: "function", typography: "math", textClass: "text-[26px]" }),
+    buildKey({ label: "\u03a0", template: "\\prod_{n=1}^{|}", tone: "function", typography: "math", textClass: "text-[26px]" }),
+    buildKey({ label: "y'", value: "y'", tone: "function", typography: "math", textClass: "text-[22px]" }),
+    solveKey
   ]
 };
 
-const SymbolIcon = ({ type }) => {
-  if (type === "divide") {
-    return (
-      <svg
-        viewBox="0 0 24 24"
-        className="h-5 w-5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <circle cx="12" cy="6" r="1.2" />
-        <path d="M5 12h14" />
-        <circle cx="12" cy="18" r="1.2" />
-      </svg>
-    );
+const utilityButtons = [
+  { id: "text", label: "abc", type: "label" },
+  { id: "left", icon: ArrowLeft, type: "move-left" },
+  { id: "right", icon: ArrowRight, type: "move-right" },
+  { id: "delete", icon: Delete, type: "delete" }
+];
+
+const getKeyButtonClasses = (key) => {
+  if (key.featured) {
+    return "border-emerald-500 bg-emerald-500 text-white shadow-[0_10px_22px_rgba(34,197,94,0.22)] active:brightness-90";
   }
 
-  if (type === "multiply") {
-    return (
-      <svg
-        viewBox="0 0 24 24"
-        className="h-5 w-5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M7 7l10 10" />
-        <path d="M17 7 7 17" />
-      </svg>
-    );
+  if (key.tone === "number") {
+    return "border-slate-200 bg-white text-slate-900 shadow-sm active:bg-slate-50";
   }
 
-  if (type === "sqrt") {
-    return (
-      <svg
-        viewBox="0 0 24 24"
-        className="h-5 w-5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M3 13h4l3 6 4-14h7" />
-      </svg>
-    );
+  if (key.tone === "operator") {
+    return "border-slate-200 bg-white text-slate-700 shadow-sm active:bg-slate-50";
   }
 
-  if (type === "integral") {
-    return (
-      <svg
-        viewBox="0 0 24 24"
-        className="h-5 w-5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M14.5 4c-2.5 0-4 1.5-4 4v8c0 2.5-1.5 4-4 4" />
-        <path d="M9.5 20c2.5 0 4-1.5 4-4V8c0-2.5 1.5-4 4-4" />
-      </svg>
-    );
+  if (key.tone === "secondary") {
+    return "border-slate-200 bg-white text-slate-500 shadow-sm active:bg-slate-50";
   }
 
-  if (type === "pi") {
-    return (
-      <svg
-        viewBox="0 0 24 24"
-        className="h-5 w-5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M5 8h14" />
-        <path d="M9 8v8c0 1.5-.4 2.7-1.5 4" />
-        <path d="M15 8v12" />
-      </svg>
-    );
-  }
+  return "border-slate-200 bg-white text-slate-900 shadow-sm active:bg-slate-50";
+};
 
-  return null;
+const getLabelClasses = (key) => {
+  const baseSize =
+    key.tone === "number"
+      ? "text-[23px] font-semibold"
+      : key.tone === "operator"
+        ? "text-[22px] font-medium"
+        : "text-[18px] font-medium";
+  const mathFont = key.typography === "math" ? "[font-family:'Times_New_Roman',serif]" : "font-sans";
+
+  return `flex h-full w-full items-center justify-center text-center leading-none ${baseSize} ${mathFont} ${
+    key.badge
+      ? "mx-auto w-auto rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-[12px] font-semibold tracking-[0.08em] text-emerald-700"
+      : ""
+  } ${key.textClass || ""}`.trim();
 };
 
 export const MathKeyboard = ({
@@ -173,76 +209,92 @@ export const MathKeyboard = ({
   canMoveRight = false,
   disabled = false
 }) => {
-  const [activeTab, setActiveTab] = useState("basic");
-  const keys = keyboardTabs[activeTab];
-  const isScientificTab = activeTab === "scientific";
+  const [activeCategory, setActiveCategory] = useState("operators");
+  const activeConfig = categoryConfig[activeCategory];
+  const keys = keyboardLayouts[activeCategory];
+
+  const utilityState = useMemo(
+    () => ({
+      "move-left": { disabled: disabled || !canMoveLeft, onClick: onMoveLeft },
+      "move-right": { disabled: disabled || !canMoveRight, onClick: onMoveRight },
+      delete: { disabled, onClick: onDelete },
+      label: { disabled: false, onClick: undefined },
+      placeholder: { disabled: false, onClick: undefined }
+    }),
+    [canMoveLeft, canMoveRight, disabled, onDelete, onMoveLeft, onMoveRight]
+  );
 
   return (
-    <aside className="fixed inset-x-0 bottom-0 z-30 border-t border-brand-line/70 bg-white/60 px-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-lg sm:px-4">
-      <div className="app-shell mx-auto flex max-h-[42vh] flex-col overflow-y-auto rounded-t-[1.75rem] border border-white/60 bg-white/65 px-2 pt-2 shadow-[0_-18px_60px_rgba(15,23,42,0.12)] backdrop-blur-lg scrollbar-hide sm:max-h-[44vh] sm:rounded-t-[2rem] sm:px-3">
-        <div className="mb-1.5 flex items-center justify-between gap-2">
-          <div className="flex min-w-0 items-center gap-1 rounded-full bg-white p-1 shadow-sm">
-            {Object.entries(tabConfig).map(([tabKey, tab]) => {
-              const TabIcon = tab.icon;
+    <aside className="fixed inset-x-0 bottom-0 z-30 bg-transparent px-0 pb-[max(0.25rem,env(safe-area-inset-bottom))]">
+      <div className="app-shell mx-auto w-full overflow-hidden rounded-t-[2rem] border border-slate-100 bg-white shadow-[0_-10px_28px_rgba(15,23,42,0.06)]">
+        <div className="border-b border-slate-50 px-3 py-2">
+          <div className="flex items-center gap-1.5">
+            {utilityButtons.map((button) => {
+              const Icon = button.icon;
+              const state = utilityState[button.type];
 
               return (
                 <button
-                  key={tabKey}
+                  key={button.id}
                   type="button"
-                  onClick={() => setActiveTab(tabKey)}
-                  className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-medium transition sm:px-3 sm:py-2 sm:text-sm ${
-                    activeTab === tabKey
-                      ? "bg-green-600 text-white hover:bg-green-700"
-                      : "text-slate-600 hover:bg-green-50 hover:text-green-700"
-                  }`}
+                  onClick={state?.onClick}
+                  disabled={state?.disabled}
+                  className={`flex items-center justify-center text-slate-900 transition duration-200 ${
+                    button.type === "label"
+                      ? "min-w-[3.25rem] justify-start pl-2 text-[17px] font-medium"
+                      : button.type === "delete"
+                        ? "ml-auto h-10 w-10 rounded-lg border border-slate-100 hover:bg-slate-50 active:bg-slate-100"
+                        : "h-9 w-9 rounded-lg hover:bg-slate-50 active:bg-slate-100"
+                  } ${state?.disabled ? "opacity-40" : ""}`}
                 >
-                  <TabIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span>{tab.label}</span>
+                  {Icon ? <Icon className="h-6 w-6 stroke-[1.8]" /> : <span>{button.label}</span>}
                 </button>
               );
             })}
           </div>
+        </div>
 
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={onMoveLeft}
-              disabled={disabled || !canMoveLeft}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm disabled:cursor-not-allowed disabled:opacity-40 sm:h-10 sm:w-10 sm:rounded-2xl"
-              aria-label="Move cursor left"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
+        <div className="px-3.5 pb-2 pt-2">
+          <div
+            className="grid gap-2"
+            style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}
+          >
+            {Object.entries(categoryConfig).map(([categoryKey, category]) => {
+              const isActive = activeCategory === categoryKey;
 
-            <button
-              type="button"
-              onClick={onMoveRight}
-              disabled={disabled || !canMoveRight}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm disabled:cursor-not-allowed disabled:opacity-40 sm:h-10 sm:w-10 sm:rounded-2xl"
-              aria-label="Move cursor right"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-
-            <button
-              type="button"
-              onClick={onDelete}
-              disabled={disabled}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:w-10 sm:rounded-2xl"
-              aria-label="Delete symbol"
-            >
-              <Delete className="h-4 w-4" />
-            </button>
+              return (
+                <button
+                  key={categoryKey}
+                  type="button"
+                  onClick={() => setActiveCategory(categoryKey)}
+                  className={`relative mt-1.5 flex h-9 min-w-0 items-center justify-center overflow-hidden rounded-lg border px-2 text-center font-sans transition duration-200 ${
+                    isActive
+                      ? "border-emerald-100 bg-white text-emerald-600 shadow-[0_8px_18px_rgba(16,185,129,0.10)]"
+                      : "border-slate-100 bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100"
+                  }`}
+                >
+                  <span className="truncate text-[11px] font-bold tracking-[0.01em] sm:text-[13px]">
+                    {category.label}
+                  </span>
+                  {isActive ? (
+                    <span className="absolute bottom-1 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-emerald-600" />
+                  ) : null}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        <div className="grid grid-cols-4 gap-1.5 pb-2">
+        <div
+          className="mt-1.5 grid gap-2 px-3.5 pb-4"
+          style={{ gridTemplateColumns: `repeat(${activeConfig.columns}, minmax(0, 1fr))` }}
+        >
           {keys.map((key) => {
             const Icon = key.icon;
 
             return (
               <motion.button
-                key={`${activeTab}-${key.label}`}
+                key={`${activeCategory}-${key.label}-${key.value || key.template || "solve"}`}
                 type="button"
                 onClick={() => {
                   if (key.featured) {
@@ -253,28 +305,18 @@ export const MathKeyboard = ({
                   onKeyPress?.(key);
                 }}
                 disabled={disabled}
-                whileTap={{ scale: 0.95 }}
-                className={`flex h-10 items-center justify-center rounded-xl border py-1.5 text-sm font-semibold shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50 sm:h-11 sm:rounded-2xl sm:py-2 sm:text-base ${
-                  key.featured
-                    ? "ai-solve-glow border-green-500 bg-green-600 text-white hover:bg-green-700"
-                    : isScientificTab
-                      ? "border-green-200 bg-green-50/60 text-green-900 hover:border-green-300 hover:bg-green-50 hover:text-green-700"
-                      : "border-brand-line bg-white text-brand-ink hover:border-green-100 hover:bg-green-50 hover:text-green-700"
-                }`}
+                whileTap={{ scale: 0.98 }}
+                className={`aspect-square w-full rounded-[1.2rem] border px-2 py-1.5 text-center transition duration-200 disabled:opacity-50 ${getKeyButtonClasses(
+                  key
+                )}`}
               >
                 {key.featured ? (
-                  <span className="flex items-center gap-2">
-                    <Sparkles className="h-3.5 w-3.5 stroke-[2] sm:h-4 sm:w-4" />
-                    {Icon ? <Icon className="h-4.5 w-4.5 stroke-[1.8] sm:h-5 sm:w-5" /> : null}
+                  <span className="flex h-full w-full items-center justify-center gap-1.5 whitespace-nowrap text-[14px] font-semibold">
+                    {Icon ? <Icon className="h-4 w-4" /> : null}
+                    <span>=</span>
                   </span>
-                ) : Icon ? (
-                  <Icon className="h-4.5 w-4.5 stroke-[1.8] sm:h-5 sm:w-5" />
-                ) : key.type ? (
-                  <SymbolIcon type={key.type} />
                 ) : (
-                  <span className={`text-sm font-sans sm:text-base ${key.textClass || ""}`.trim()}>
-                    {key.label}
-                  </span>
+                  <span className={getLabelClasses(key)}>{key.label}</span>
                 )}
               </motion.button>
             );

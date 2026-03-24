@@ -197,6 +197,76 @@ const renderKhmerExplanation = (text) => {
 const getStepFormula = (step) => step?.formula || step?.latex || "";
 const getStepExplanation = (step) => step?.explanation || step?.explanation_kh || "";
 
+const detectGeometryStyle = (solution, expression) => {
+  const source = `${expression} ${solution?.question_text || ""} ${solution?.steps
+    ?.map((step) => `${getStepFormula(step)} ${getStepExplanation(step)}`)
+    .join(" ") || ""}`;
+
+  return /\\vec|AB|AC|BC|\(P\)|\(D\)|plane|vector|distance|cross|dot|ប្លង់|វ៉ិចទ័រ|ចម្ងាយ|បន្ទាត់/i.test(
+    source
+  );
+};
+
+const getSolutionStyle = (solution, expression) => {
+  if (!solution) {
+    return "standard";
+  }
+
+  if (detectGeometryStyle(solution, expression)) {
+    return "geometry";
+  }
+
+  if ((solution.steps?.length || 0) >= 5) {
+    return "long";
+  }
+
+  return "standard";
+};
+
+const getSolutionTags = (solutionStyle, stepsCount) => {
+  const tags = [];
+
+  if (solutionStyle === "geometry") {
+    tags.push("Geometry");
+    tags.push("Multi-part");
+  } else if (solutionStyle === "long") {
+    tags.push("Long-form");
+  } else {
+    tags.push("Structured");
+  }
+
+  tags.push(`${stepsCount} steps`);
+  return tags;
+};
+
+const getStepTitle = (step, index, solutionStyle) => {
+  const explanation = getStepExplanation(step);
+  const formula = getStepFormula(step);
+
+  if (/^(ក|ខ|គ|ឃ|ង|ច|ឆ|ជ|ឈ|ញ|ដ|ឋ|ឌ|ឍ|ណ|ត|ថ|ទ|ធ|ន|ប|ផ|ព|ភ|ម|យ|រ|ល|វ|ស|ហ)\s*[.)៖:-]/u.test(explanation)) {
+    return explanation.split("\n")[0].trim();
+  }
+
+  if (solutionStyle === "geometry") {
+    const geometryTitles = [
+      "Setup",
+      "Vector Work",
+      "Derivation",
+      "Equation Build",
+      "Conclusion",
+      "Final Check"
+    ];
+
+    return geometryTitles[index] || `Part ${index + 1}`;
+  }
+
+  if (/\\Delta|sqrt|frac|=/.test(formula)) {
+    return "Derivation";
+  }
+
+  return `Step ${step.step || index + 1}`;
+};
+
 const toPlainCopyText = (text) => {
   if (!text) {
     return "";
@@ -392,6 +462,14 @@ export const SolutionPage = () => {
     () => stripLatexForPlainResult(solution?.final_answer || ""),
     [solution?.final_answer]
   );
+  const solutionStyle = useMemo(
+    () => getSolutionStyle(solution, expression),
+    [expression, solution]
+  );
+  const solutionTags = useMemo(
+    () => getSolutionTags(solutionStyle, solution?.steps?.length || 0),
+    [solution?.steps?.length, solutionStyle]
+  );
   const graphData = useMemo(
     () => buildGraphData(solution?.expression || expression),
     [expression, solution?.expression]
@@ -516,6 +594,41 @@ export const SolutionPage = () => {
 
         {!isLoading && solution && (
           <>
+            <section className="mt-5 rounded-3xl border border-green-100 bg-white p-4 shadow-sm">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    Solution Overview
+                  </p>
+                  <h2 className="mt-2 text-lg font-semibold text-slate-900">
+                    {solutionStyle === "geometry"
+                      ? "Detailed Geometry Breakdown"
+                      : solutionStyle === "long"
+                        ? "Extended Step-by-Step Walkthrough"
+                        : "Clean Structured Solution"}
+                  </h2>
+                  <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">
+                    {solutionStyle === "geometry"
+                      ? "This answer is arranged for a longer vector or analytic geometry workflow so each derivation stays readable."
+                      : solutionStyle === "long"
+                        ? "This problem needs a few connected steps, so the solution is grouped for easier reading."
+                        : "The answer is organized into concise steps with formulas and explanation together."}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {solutionTags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center rounded-full border border-green-100 bg-green-50 px-3 py-1 text-[11px] font-medium text-green-700"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </section>
+
             <section className="mt-5">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <h2 className="text-lg font-semibold text-green-900">Step-by-Step Solution</h2>
@@ -529,28 +642,72 @@ export const SolutionPage = () => {
                 variants={timelineVariants}
                 initial="hidden"
                 animate="show"
-                className="space-y-4"
+                className={`space-y-4 ${solutionStyle === "geometry" ? "md:space-y-5" : ""}`}
               >
                 {solution.steps.map((step, index) => (
                   <motion.article
                     key={`timeline-${index}`}
                     variants={itemVariants}
-                    className="relative pl-14"
+                    className={`relative ${solutionStyle === "geometry" ? "pl-0 md:pl-16" : "pl-14"}`}
                   >
                     {index < solution.steps.length - 1 && (
-                      <div className="absolute bottom-[-24px] left-[19px] top-11 w-0.5 bg-green-200" />
+                      <div
+                        className={`absolute bottom-[-24px] w-0.5 bg-green-200 ${
+                          solutionStyle === "geometry"
+                            ? "left-[19px] top-14 hidden md:block"
+                            : "left-[19px] top-11"
+                        }`}
+                      />
                     )}
 
-                    <div className="absolute left-0 top-1 flex h-10 w-10 items-center justify-center rounded-full bg-green-600 text-sm font-bold text-white shadow-sm">
+                    <div
+                      className={`absolute left-0 top-1 flex h-10 w-10 items-center justify-center rounded-full bg-green-600 text-sm font-bold text-white shadow-sm ${
+                        solutionStyle === "geometry" ? "hidden md:flex" : ""
+                      }`}
+                    >
                       {step.step || index + 1}
                     </div>
 
-                    <div className="rounded-3xl border border-green-100 bg-white px-4 py-4 shadow-sm">
-                      <div className="overflow-x-auto rounded-2xl bg-green-50 px-4 py-3.5">
-                        <BlockMath math={sanitizeLatex(getStepFormula(step))} />
+                    <div
+                      className={`rounded-3xl border border-green-100 bg-white px-4 py-4 shadow-sm ${
+                        solutionStyle === "geometry" ? "overflow-hidden" : ""
+                      }`}
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <div className="inline-flex items-center gap-2 rounded-full border border-green-100 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-green-700 shadow-sm">
+                            <span>{step.step || index + 1}</span>
+                            <span className="text-slate-300">|</span>
+                            <span>{getStepTitle(step, index, solutionStyle)}</span>
+                          </div>
+                        </div>
+
+                        {solutionStyle === "geometry" ? (
+                          <div className="rounded-full bg-green-50 px-3 py-1 text-[11px] font-medium text-green-700">
+                            Part {index + 1}
+                          </div>
+                        ) : null}
                       </div>
 
-                      <div className="mt-3 rounded-2xl bg-slate-50 px-4 py-3.5">
+                      {getStepFormula(step) ? (
+                        <div
+                          className={`mt-3 overflow-x-auto rounded-2xl px-4 py-3.5 ${
+                            solutionStyle === "geometry"
+                              ? "border border-green-100 bg-gradient-to-r from-green-50 via-white to-green-50"
+                              : "bg-green-50"
+                          }`}
+                        >
+                          <BlockMath math={sanitizeLatex(getStepFormula(step))} />
+                        </div>
+                      ) : null}
+
+                      <div
+                        className={`mt-3 rounded-2xl px-4 py-3.5 ${
+                          solutionStyle === "geometry"
+                            ? "border border-slate-100 bg-slate-50/85"
+                            : "bg-slate-50"
+                        }`}
+                      >
                         <div className="space-y-2 text-sm leading-relaxed text-slate-700">
                           {renderKhmerExplanation(getStepExplanation(step))}
                         </div>

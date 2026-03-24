@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import katex from "katex";
 import { BlockMath } from "react-katex";
 import {
   ArrowLeft,
@@ -25,6 +26,8 @@ const featureBadges = [
   { id: "steps", label: "Steps", icon: Waypoints },
   { id: "accurate", label: "Accurate", icon: Target }
 ];
+
+const DEFAULT_PREVIEW_EXPRESSION = "x^2 + 5x + 6 = 0";
 
 const sanitizeLatex = (value) => {
   if (!value) {
@@ -70,6 +73,41 @@ const makePreviewLatexSafe = (value) => {
     .replace(/_\{([^}]*)$/, "_{$1}");
 
   return safeLatex;
+};
+
+const canRenderLatex = (value) => {
+  if (!value) {
+    return false;
+  }
+
+  try {
+    katex.renderToString(value, { displayMode: true, throwOnError: true });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const getPreviewExpression = (value) => {
+  const safeLatex = makePreviewLatexSafe(value);
+
+  if (!safeLatex) {
+    return DEFAULT_PREVIEW_EXPRESSION;
+  }
+
+  if (canRenderLatex(safeLatex)) {
+    return safeLatex;
+  }
+
+  for (let index = safeLatex.length - 1; index > 0; index -= 1) {
+    const fallbackCandidate = makePreviewLatexSafe(safeLatex.slice(0, index));
+
+    if (canRenderLatex(fallbackCandidate)) {
+      return fallbackCandidate;
+    }
+  }
+
+  return DEFAULT_PREVIEW_EXPRESSION;
 };
 
 const isLikelyMathExpression = (value) => /[0-9xyz=+\-*/^()\\]/i.test(value);
@@ -171,13 +209,14 @@ export const SolvePage = () => {
   }, [isInputReady]);
 
   const previewExpression = useMemo(() => {
-    return makePreviewLatexSafe(expression) || "x^2 + 5x + 6 = 0";
+    return getPreviewExpression(expression);
   }, [expression]);
 
   const cursorPosition = editIndex ?? selectionRange.start;
 
   const handleKeyboardPress = (key) => {
     const token = key.value || key.label;
+    const nextCaretPosition = typeof key.caretOffset === "number" ? key.caretOffset : token.length;
     const isSingleCharacterToken = token.length === 1;
 
     let nextExpression;
@@ -190,7 +229,7 @@ export const SolvePage = () => {
     } else {
       const { start, end } = selectionRange;
       nextExpression = expression.slice(0, start) + token + expression.slice(end);
-      nextPosition = start + token.length;
+      nextPosition = start + nextCaretPosition;
       setEditIndex(null);
     }
 
@@ -260,7 +299,7 @@ export const SolvePage = () => {
 
         <main
           className={`flex-1 bg-gradient-to-b from-green-50 via-white to-slate-50 px-4 pt-4 md:px-5 lg:px-6 ${
-            isInputReady ? "pb-40" : "pb-6"
+            isInputReady ? "pb-56" : "pb-6"
           }`}
         >
           <button
