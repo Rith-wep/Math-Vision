@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   BookOpenCheck,
@@ -50,12 +50,29 @@ export const BottomNavigation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const handleKeyboardVisibility = (event) => {
+      setIsKeyboardVisible(Boolean(event.detail?.visible));
+    };
+
+    window.addEventListener("mathvision:keyboard-visibility", handleKeyboardVisibility);
+
+    return () => {
+      window.removeEventListener("mathvision:keyboard-visibility", handleKeyboardVisibility);
+    };
+  }, []);
 
   return (
     <>
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-4">
+      <div
+        className={`pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-4 transition-all duration-200 ${
+          isKeyboardVisible ? "translate-y-28 opacity-0" : "translate-y-0 opacity-100"
+        }`}
+      >
         <div className="app-shell w-full pointer-events-auto">
-          <div className="relative h-20 rounded-[2rem] border border-slate-200/80 bg-white/80 px-5 backdrop-blur-md shadow-[0_-10px_30px_rgba(15,23,42,0.08)]">
+          <div className="relative h-20 rounded-[2rem] border border-slate-200/80 bg-white/90 px-5 backdrop-blur-md shadow-[0_-10px_30px_rgba(15,23,42,0.06)]">
             <div className="flex h-full items-center justify-between">
               <div className="flex flex-1 items-center justify-start gap-1">
                 {navItems.slice(0, 2).map((item) => {
@@ -91,7 +108,7 @@ export const BottomNavigation = () => {
                   type="button"
                   whileTap={{ scale: 0.96 }}
                   onClick={() => setIsUploadOpen(true)}
-                  className="mt-[-2.2rem] flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_18px_36px_rgba(16,185,129,0.35)] ring-8 ring-white/90"
+                  className="mt-[-2.2rem] flex h-16 w-16 items-center justify-center rounded-full border-4 border-white bg-[linear-gradient(135deg,#22c55e,#16a34a)] text-white shadow-[0_8px_18px_rgba(34,197,94,0.18)]"
                   aria-label="Scan math problem"
                 >
                   <Camera className="h-7 w-7" />

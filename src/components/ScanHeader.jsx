@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, LogIn, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+import { ButtonSpinner } from "./ButtonSpinner.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 
 const MathVisionLogo = () => {
@@ -175,10 +176,14 @@ export const ScanHeader = () => {
             className="inline-flex items-center gap-2 rounded-full border border-green-700 bg-gradient-to-r from-green-600 via-green-500 to-emerald-500 px-3.5 py-2 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(34,197,94,0.24)] transition active:scale-95 hover:-translate-y-[1px] hover:from-green-700 hover:via-green-600 hover:to-emerald-600 hover:shadow-[0_16px_32px_rgba(34,197,94,0.3)] disabled:cursor-not-allowed disabled:opacity-60"
           >
             <span className="whitespace-nowrap tracking-[0.01em]">
-              {isAuthLoading ? "Checking..." : "Login"}
+              Login
             </span>
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 ring-1 ring-white/20">
-              <LogIn className="h-4 w-4 text-white" />
+              {isAuthLoading ? (
+                <ButtonSpinner className="h-3.5 w-3.5 text-white" />
+              ) : (
+                <LogIn className="h-4 w-4 text-white" />
+              )}
             </span>
           </button>
         )}

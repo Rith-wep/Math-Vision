@@ -4,6 +4,7 @@ import { ArrowLeft, BadgeCheck, Quote, TrendingUp, Trophy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { ScanHeader } from "../components/ScanHeader.jsx";
+import { SkeletonBlock } from "../components/SkeletonBlock.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { formulaService } from "../services/formulaService.js";
 
@@ -87,14 +88,14 @@ export const DashboardPage = () => {
     {
       id: "total",
       label: "Total Problems",
-      value: isLoading ? "--" : stats.totalSolved,
+      value: stats.totalSolved,
       icon: Trophy,
       subtitle: "វិញ្ញាសាដោះស្រាយរួចសរុប"
     },
     {
       id: "weekly",
       label: "Weekly Solved",
-      value: isLoading ? "--" : stats.weeklySolved,
+      value: stats.weeklySolved,
       icon: TrendingUp,
       subtitle: "ស្ថិតិសិក្សាប្រចាំសប្ដាហ៍"
     }
@@ -180,9 +181,13 @@ export const DashboardPage = () => {
                       <p className="text-xs font-medium uppercase tracking-[0.14em] text-slate-400">
                         {card.label}
                       </p>
-                      <p className="mt-2.5 bg-gradient-to-br from-green-500 to-green-700 bg-clip-text text-[2.45rem] font-black leading-none text-transparent">
-                        {card.value}
-                      </p>
+                      {isLoading ? (
+                        <SkeletonBlock className="mt-2.5 h-10 w-24 rounded-xl" />
+                      ) : (
+                        <p className="mt-2.5 bg-gradient-to-br from-green-500 to-green-700 bg-clip-text text-[2.45rem] font-black leading-none text-transparent">
+                          {card.value}
+                        </p>
+                      )}
                     </div>
 
                     <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/70 bg-gradient-to-br from-white to-green-50 shadow-sm backdrop-blur-md">
@@ -207,63 +212,74 @@ export const DashboardPage = () => {
                 </p>
               </div>
               <div className="rounded-full border border-green-100 bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
-                {isLoading ? "--" : `${stats.weeklySolved} solved`}
+                {isLoading ? <SkeletonBlock className="h-4 w-16 rounded-full" /> : `${stats.weeklySolved} solved`}
               </div>
             </div>
 
             <div className="mt-3 overflow-hidden rounded-3xl border border-green-100/70 bg-gradient-to-b from-green-50 via-white to-white p-3">
-              <svg
-                viewBox="0 0 336 140"
-                className="h-40 w-full"
-                role="img"
-                aria-label="Weekly activity chart"
-              >
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <line
-                    key={`grid-${index}`}
-                    x1="16"
-                    y1={24 + index * 24}
-                    x2="320"
-                    y2={24 + index * 24}
-                    stroke="#dcfce7"
-                    strokeWidth="1"
+              {isLoading ? (
+                <div className="space-y-3">
+                  <SkeletonBlock className="h-40 w-full rounded-[1.5rem]" />
+                  <div className="grid grid-cols-7 gap-2">
+                    {Array.from({ length: 7 }).map((_, index) => (
+                      <SkeletonBlock key={`dashboard-day-${index}`} className="h-3 w-full rounded-md" />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <svg
+                  viewBox="0 0 336 140"
+                  className="h-40 w-full"
+                  role="img"
+                  aria-label="Weekly activity chart"
+                >
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <line
+                      key={`grid-${index}`}
+                      x1="16"
+                      y1={24 + index * 24}
+                      x2="320"
+                      y2={24 + index * 24}
+                      stroke="#dcfce7"
+                      strokeWidth="1"
+                    />
+                  ))}
+
+                  <path
+                    d={`${activityPath} L 312 120 L 24 120 Z`}
+                    fill="url(#activityFill)"
+                    opacity="0.35"
                   />
-                ))}
+                  <path
+                    d={activityPath}
+                    fill="none"
+                    stroke="#22c55e"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
 
-                <path
-                  d={`${activityPath} L 312 120 L 24 120 Z`}
-                  fill="url(#activityFill)"
-                  opacity="0.35"
-                />
-                <path
-                  d={activityPath}
-                  fill="none"
-                  stroke="#22c55e"
-                  strokeWidth="4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
+                  {weeklyActivity.map((value, index) => {
+                    const maxValue = Math.max(...weeklyActivity, 1);
+                    const x = 24 + index * 48;
+                    const y = 120 - (value / maxValue) * 72;
 
-                {weeklyActivity.map((value, index) => {
-                  const maxValue = Math.max(...weeklyActivity, 1);
-                  const x = 24 + index * 48;
-                  const y = 120 - (value / maxValue) * 72;
+                    return (
+                      <g key={`point-${index}`}>
+                        <circle cx={x} cy={y} r="5" fill="#22c55e" />
+                        <circle cx={x} cy={y} r="10" fill="#22c55e" opacity="0.12" />
+                      </g>
+                    );
+                  })}
 
-                  return (
-                    <g key={`point-${index}`}>
-                      <circle cx={x} cy={y} r="5" fill="#22c55e" />
-                      <circle cx={x} cy={y} r="10" fill="#22c55e" opacity="0.12" />
-                    </g>
-                  );
-                })}
-
-                <defs>
-                  <linearGradient id="activityFill" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stopColor="#22c55e" />
-                    <stop offset="100%" stopColor="#22c55e" stopOpacity="0" />
-                  </linearGradient>
-                </defs>
-              </svg>
+                  <defs>
+                    <linearGradient id="activityFill" x1="0" x2="0" y1="0" y2="1">
+                      <stop offset="0%" stopColor="#22c55e" />
+                      <stop offset="100%" stopColor="#22c55e" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              )}
 
               <div className="mt-2 grid grid-cols-7 text-center text-[10px] font-medium uppercase tracking-[0.14em] text-slate-400">
                 {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (

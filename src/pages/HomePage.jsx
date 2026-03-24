@@ -108,7 +108,7 @@ export const HomePage = () => {
               <p className="mt-3 max-w-[34ch] text-sm leading-relaxed text-slate-600">
                 ស្វែងរកដំណោះស្រាយលំហាត់ និងធនធានសិក្សាសម្បូរបែបជាមួយ{" "}
                 <span className="italic underline decoration-green-300 decoration-2 underline-offset-4">
-                  Math Vision
+                  Math-Vision
                 </span>
                 ។
               </p>

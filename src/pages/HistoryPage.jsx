@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { BlockMath } from "react-katex";
 
 import { ScanHeader } from "../components/ScanHeader.jsx";
+import { SkeletonBlock } from "../components/SkeletonBlock.jsx";
 import { formulaService } from "../services/formulaService.js";
 
 const sanitizeLatex = (value) => {
@@ -89,6 +90,40 @@ const getQuestionText = (item) => item.questionText || item.expression || "";
 
 const getFinalAnswer = (item) =>
   item.finalAnswer || item.parsedSolution?.final_answer || item.solution?.final_answer || "";
+
+const getStoredSolution = (item) => {
+  if (item.parsedSolution) {
+    return {
+      ...item.parsedSolution,
+      question_text: item.questionText || item.parsedSolution.question_text || item.expression || "",
+      expression: item.questionText || item.parsedSolution.expression || item.expression || ""
+    };
+  }
+
+  if (item.solutionText) {
+    try {
+      const parsedSolution = JSON.parse(item.solutionText);
+      return {
+        ...parsedSolution,
+        question_text: item.questionText || parsedSolution.question_text || item.expression || "",
+        expression: item.questionText || parsedSolution.expression || item.expression || ""
+      };
+    } catch (error) {
+      return null;
+    }
+  }
+
+  if (item.finalAnswer) {
+    return {
+      question_text: item.questionText || item.expression || "",
+      expression: item.questionText || item.expression || "",
+      final_answer: item.finalAnswer,
+      steps: []
+    };
+  }
+
+  return null;
+};
 
 export const HistoryPage = () => {
   const navigate = useNavigate();
@@ -169,8 +204,31 @@ export const HistoryPage = () => {
 
           <section className="mt-4 space-y-4">
             {isLoading ? (
-              <div className="rounded-[2rem] border border-green-100 bg-white p-4 text-sm text-slate-500 shadow-sm">
-                Loading history...
+              <div className="space-y-3.5">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <article
+                    key={`history-skeleton-${index}`}
+                    className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <SkeletonBlock className="h-7 w-20 rounded-full" />
+                      <SkeletonBlock className="h-8 w-8 rounded-full" />
+                    </div>
+
+                    <div className="mt-4 space-y-3">
+                      <SkeletonBlock className="h-10 w-3/4 rounded-2xl" />
+                      <SkeletonBlock className="h-8 w-1/2 rounded-2xl" />
+                    </div>
+
+                    <div className="mt-5 flex items-center justify-between gap-3">
+                      <SkeletonBlock className="h-3 w-28 rounded-lg" />
+                      <div className="flex gap-2">
+                        <SkeletonBlock className="h-10 w-24 rounded-xl" />
+                        <SkeletonBlock className="h-10 w-20 rounded-xl" />
+                      </div>
+                    </div>
+                  </article>
+                ))}
               </div>
             ) : groupedHistory.length === 0 ? (
               <motion.div
@@ -208,7 +266,7 @@ export const HistoryPage = () => {
                 <button
                   type="button"
                   onClick={() => navigate("/solve")}
-                  className="group mt-5 inline-flex items-center gap-2 rounded-full bg-green-700 px-5 py-2.5 text-sm font-medium text-white shadow-[0_10px_22px_rgba(220,252,231,0.95)] transition hover:bg-green-800"
+                  className="group mt-5 inline-flex items-center gap-2 rounded-full bg-green-600 px-5 py-2.5 text-sm font-medium text-white shadow-[0_10px_22px_rgba(220,252,231,0.95)] transition hover:bg-green-800"
                 >
                   <span>Start Solving</span>
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
@@ -229,6 +287,7 @@ export const HistoryPage = () => {
                     {group.items.map((item) => {
                       const questionText = getQuestionText(item);
                       const finalAnswer = getFinalAnswer(item);
+                      const storedSolution = getStoredSolution(item);
 
                       return (
                         <article
@@ -285,7 +344,13 @@ export const HistoryPage = () => {
                               <button
                                 type="button"
                                 onClick={() =>
-                                  navigate(`/solution?expression=${encodeURIComponent(questionText)}`)
+                                  navigate(`/solution?expression=${encodeURIComponent(questionText)}`, {
+                                    state: storedSolution
+                                      ? {
+                                          prefetchedSolution: storedSolution
+                                        }
+                                      : undefined
+                                  })
                                 }
                                 className="inline-flex h-10 min-w-0 flex-1 items-center justify-center rounded-xl bg-green-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-green-700 sm:flex-none"
                               >

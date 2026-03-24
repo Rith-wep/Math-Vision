@@ -10,6 +10,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import { ScanHeader } from "../components/ScanHeader.jsx";
+import { SkeletonBlock } from "../components/SkeletonBlock.jsx";
 import { formulaService } from "../services/formulaService.js";
 import { toKhmerErrorMessage } from "../utils/errorMessages.js";
 
@@ -179,9 +180,22 @@ export const DocsPage = () => {
           </section>
 
           {isLoading && (
-            <div className="mt-4 rounded-3xl border border-green-100 bg-white p-4 text-sm text-slate-600 shadow-sm">
-              Loading resources...
-            </div>
+            <section className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+              {Array.from({ length: 8 }).map((_, index) => (
+                <article
+                  key={`docs-skeleton-${index}`}
+                  className="rounded-3xl border border-slate-100 bg-white p-3.5 shadow-sm"
+                >
+                  <SkeletonBlock className="h-16 w-16 rounded-2xl" />
+                  <div className="mt-4 space-y-2">
+                    <SkeletonBlock className="h-4 w-full rounded-lg" />
+                    <SkeletonBlock className="h-4 w-4/5 rounded-lg" />
+                    <SkeletonBlock className="h-3 w-1/3 rounded-lg" />
+                  </div>
+                  <SkeletonBlock className="mt-4 h-10 w-full rounded-xl" />
+                </article>
+              ))}
+            </section>
           )}
 
           {!isLoading && errorMessage && (

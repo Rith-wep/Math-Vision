@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, LockKeyhole, Mail, UserRound } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+import { ButtonSpinner } from "../components/ButtonSpinner.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { toKhmerErrorMessage } from "../utils/errorMessages.js";
 
@@ -249,10 +250,10 @@ export const LoginPage = () => {
               <button
                 type="submit"
                 disabled={isSubmitting || isAuthLoading}
-                className="inline-flex w-full items-center justify-center rounded-2xl bg-emerald-500 px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex w-full items-center justify-center rounded-2xl bg-green-600 px-4 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isSubmitting
-                  ? "Please wait..."
+                  ? <ButtonSpinner className="h-4 w-4" />
                   : isSignup
                     ? "ចុះឈ្មោះឥឡូវនេះ"
                     : "Login"}
@@ -275,9 +276,9 @@ export const LoginPage = () => {
             className="inline-flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-green-50 hover:shadow-md active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white ring-1 ring-slate-200">
-              <GoogleIcon />
+              {isAuthLoading ? <ButtonSpinner className="text-slate-500" /> : <GoogleIcon />}
             </span>
-            <span>{isAuthLoading ? "Checking..." : "បន្តជាមួយ Google"}</span>
+            <span>បន្តជាមួយ Google</span>
           </button>
 
           <div className="mt-6 text-center text-sm text-slate-500">

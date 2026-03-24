@@ -15,6 +15,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { MathKeyboard } from "../components/MathKeyboard.jsx";
 import { ScanHeader } from "../components/ScanHeader.jsx";
+import { SkeletonBlock } from "../components/SkeletonBlock.jsx";
 import { UploadPhoto } from "../components/UploadPhoto.jsx";
 import { formulaService } from "../services/formulaService.js";
 import { toKhmerErrorMessage } from "../utils/errorMessages.js";
@@ -36,6 +37,39 @@ const sanitizeLatex = (value) => {
     .replace(/\\\[(.*)\\\]/s, "$1")
     .replace(/\\\((.*)\\\)/s, "$1")
     .trim();
+};
+
+const makePreviewLatexSafe = (value) => {
+  const sanitized = sanitizeLatex(value);
+
+  if (!sanitized) {
+    return "";
+  }
+
+  let safeLatex = sanitized;
+  let openBraceCount = 0;
+
+  for (const character of safeLatex) {
+    if (character === "{") {
+      openBraceCount += 1;
+    } else if (character === "}" && openBraceCount > 0) {
+      openBraceCount -= 1;
+    }
+  }
+
+  if (openBraceCount > 0) {
+    safeLatex += "}".repeat(openBraceCount);
+  }
+
+  if (safeLatex.endsWith("^") || safeLatex.endsWith("_")) {
+    safeLatex += "{}";
+  }
+
+  safeLatex = safeLatex
+    .replace(/\^\{([^}]*)$/, "^{$1}")
+    .replace(/_\{([^}]*)$/, "_{$1}");
+
+  return safeLatex;
 };
 
 const isLikelyMathExpression = (value) => /[0-9xyz=+\-*/^()\\]/i.test(value);
@@ -120,8 +154,24 @@ export const SolvePage = () => {
     }
   }, [location.search]);
 
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent("mathvision:keyboard-visibility", {
+        detail: { visible: isInputReady }
+      })
+    );
+
+    return () => {
+      window.dispatchEvent(
+        new CustomEvent("mathvision:keyboard-visibility", {
+          detail: { visible: false }
+        })
+      );
+    };
+  }, [isInputReady]);
+
   const previewExpression = useMemo(() => {
-    return sanitizeLatex(expression) || "x^2 + 5x + 6 = 0";
+    return makePreviewLatexSafe(expression) || "x^2 + 5x + 6 = 0";
   }, [expression]);
 
   const cursorPosition = editIndex ?? selectionRange.start;
@@ -224,7 +274,7 @@ export const SolvePage = () => {
 
           <section className="space-y-3">
             <div className="space-y-1.5">
-              <p className="text-base font-bold tracking-[0.04em] text-green-700">Math Vision</p>
+              <p className="text-base font-bold tracking-[0.04em] text-green-700">Math-Vision</p>
               <h1 className="mb-2 font-brand text-xl leading-relaxed text-green-900">
                 ដោះស្រាយសមីការ និងលំហាត់
               </h1>
@@ -344,7 +394,17 @@ export const SolvePage = () => {
           </section>
 
           {isLoadingSuggestions && (
-            <div className="premium-card mt-5 rounded-3xl border border-green-100/80 bg-white/90 p-4 text-sm text-slate-600">
+            <div className="premium-card mt-5 rounded-3xl border border-green-100/80 bg-white/90 p-4">
+              <div className="space-y-3">
+                <SkeletonBlock className="h-4 w-40 rounded-lg" />
+                <SkeletonBlock className="h-4 w-full rounded-lg" />
+                <SkeletonBlock className="h-4 w-4/5 rounded-lg" />
+              </div>
+            </div>
+          )}
+
+          {isLoadingSuggestions && (
+            <div className="hidden premium-card mt-5 rounded-3xl border border-green-100/80 bg-white/90 p-4 text-sm text-slate-600">
               កំពុងផ្ទុកទិន្នន័យ...
             </div>
           )}

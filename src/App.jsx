@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
+import { BookOpen, ScanSearch, Sigma } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 
@@ -12,6 +13,75 @@ import { LoginPage } from "./pages/LoginPage.jsx";
 import { QcmPage } from "./pages/QcmPage.jsx";
 import { SolvePage } from "./pages/SolvePage.jsx";
 import { SolutionPage } from "./pages/SolutionPage.jsx";
+
+const splashSymbols = [
+  { symbol: "π", className: "left-[10%] top-[16%] text-5xl md:text-6xl", duration: 8.5, delay: 0.2 },
+  { symbol: "√", className: "right-[12%] top-[20%] text-6xl md:text-7xl", duration: 9.5, delay: 0.8 },
+  { symbol: "∑", className: "left-[16%] bottom-[18%] text-5xl md:text-6xl", duration: 8.8, delay: 0.4 },
+  { symbol: "∫", className: "right-[16%] bottom-[15%] text-6xl md:text-7xl", duration: 10.2, delay: 1.1 }
+];
+
+const splashHighlights = [
+  {
+    label: "Scan",
+    value: "Smart capture",
+    icon: ScanSearch,
+    iconBoxClassName: "bg-emerald-50 text-emerald-600"
+  },
+  {
+    label: "Solve",
+    value: "Step guidance",
+    icon: Sigma,
+    iconBoxClassName: "bg-blue-50 text-blue-600"
+  },
+  {
+    label: "Learn",
+    value: "Clear insight",
+    icon: BookOpen,
+    iconBoxClassName: "bg-purple-50 text-purple-600"
+  }
+];
+
+const SplashLogo = () => {
+  return (
+    <div className="relative flex h-24 w-24 items-center justify-center rounded-[2rem] bg-emerald-50">
+      <div className="absolute inset-0 rounded-[2rem] bg-[radial-gradient(circle_at_top,_rgba(74,222,128,0.26),_transparent_70%)]" />
+      <svg
+        viewBox="0 0 96 96"
+        className="relative h-16 w-16 drop-shadow-[0_10px_14px_rgba(34,197,94,0.18)]"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <defs>
+          <linearGradient id="splash-cube-top" x1="18" y1="18" x2="48" y2="40" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor="#4ade80" />
+            <stop offset="100%" stopColor="#22c55e" />
+          </linearGradient>
+          <linearGradient id="splash-cube-left" x1="18" y1="40" x2="48" y2="76" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor="#22c55e" />
+            <stop offset="100%" stopColor="#15803d" />
+          </linearGradient>
+          <linearGradient id="splash-cube-right" x1="48" y1="40" x2="78" y2="76" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor="#16a34a" />
+            <stop offset="100%" stopColor="#14532d" />
+          </linearGradient>
+        </defs>
+
+        <path d="M48 16 76 30 48 44 20 30 48 16Z" fill="url(#splash-cube-top)" />
+        <path d="M20 30 48 44V76L20 60V30Z" fill="url(#splash-cube-left)" />
+        <path d="M76 30 48 44V76l28-16V30Z" fill="url(#splash-cube-right)" />
+        <path
+          d="M38 34.5 45.5 42 60 26.5"
+          stroke="#ffffff"
+          strokeWidth="4.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </div>
+  );
+};
 
 const ScrollToTop = () => {
   const location = useLocation();
@@ -31,7 +101,7 @@ const App = () => {
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
       setShowSplash(false);
-    }, 1300);
+    }, 2000);
 
     return () => window.clearTimeout(timeoutId);
   }, []);
@@ -43,22 +113,111 @@ const App = () => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.45, ease: "easeOut" }}
-        className="flex min-h-screen items-center justify-center bg-white px-6"
+        className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-50 px-6"
       >
-        <div className="text-center">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(148,163,184,0.045)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.045)_1px,transparent_1px)] bg-[size:72px_72px] opacity-50" />
+        <div className="absolute left-1/2 top-[-10rem] h-[24rem] w-[24rem] -translate-x-1/2 rounded-full bg-emerald-100/80 blur-3xl" />
+        <div className="absolute bottom-[-8rem] left-[-6rem] h-[18rem] w-[18rem] rounded-full bg-blue-100/60 blur-3xl" />
+        <div className="absolute right-[-4rem] top-1/3 h-[16rem] w-[16rem] rounded-full bg-purple-100/55 blur-3xl" />
+
+        {splashSymbols.map(({ symbol, className, duration, delay }) => (
           <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="space-y-3"
+            key={symbol}
+            aria-hidden="true"
+            className={`pointer-events-none absolute select-none font-serif font-semibold text-emerald-200/60 ${className}`}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: [0.18, 0.44, 0.18], y: [0, -16, 0], x: [0, 4, 0] }}
+            transition={{ duration, delay, repeat: Infinity, ease: "easeInOut" }}
           >
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-green-50 text-2xl font-black text-green-600 shadow-sm">
-              MV
+            {symbol}
+          </motion.div>
+        ))}
+
+        <div className="relative z-10 w-full max-w-2xl text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 18, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="relative overflow-hidden rounded-[2rem] border border-slate-100 bg-white px-8 py-14 shadow-sm md:px-14 md:py-16"
+          >
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-200/70 to-transparent" />
+            <div className="absolute left-1/2 top-0 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-50/80 blur-3xl" />
+
+            <div className="space-y-8 md:space-y-10">
+              <div className="mx-auto flex w-fit items-center gap-2 rounded-full border border-emerald-200 bg-white/95 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.28em] text-emerald-600 shadow-[0_8px_24px_rgba(16,185,129,0.08)]">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                AI Learning Assistant
+              </div>
+
+              <div className="relative mx-auto flex h-24 w-24 items-center justify-center">
+                <motion.div
+                  className="absolute inset-0 rounded-[2rem] border border-emerald-200/80"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 16, repeat: Infinity, ease: "linear" }}
+                />
+                <motion.div
+                  initial={{ scale: 0.92, opacity: 0 }}
+                  animate={{ scale: [1, 1.03, 1], opacity: 1 }}
+                  transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                  className="relative"
+                >
+                  <SplashLogo />
+                </motion.div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <p className="text-2xl font-extrabold tracking-tight text-slate-900 md:text-5xl">
+                    Math-<span className="text-[#22c55e]">Vision</span>
+                  </p>
+                  <p className="mx-auto max-w-lg text-xs font-medium uppercase tracking-[0.32em] text-slate-400">
+                    Intelligent problem solving for modern learners
+                  </p>
+                </div>
+
+                <p className="khmer-font mx-auto max-w-xl text-lg leading-loose text-slate-700 md:text-xl">
+                  ដោះស្រាយវិញ្ញាសា ដោយបញ្ញាសិប្បនិម្មិត
+                </p>
+              </div>
+
+              <div className="mx-auto mt-4 grid max-w-2xl grid-cols-1 gap-4 text-left sm:grid-cols-3">
+                {splashHighlights.map(({ label, value, icon: Icon, iconBoxClassName }, index) => (
+                  <motion.div
+                    key={label}
+                    initial={{ opacity: 0, y: 18 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.45, delay: 0.2 + index * 0.12, ease: "easeOut" }}
+                    className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-white px-4 py-4 shadow-sm"
+                  >
+                    <div
+                      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-xl font-bold ${iconBoxClassName}`}
+                    >
+                      <Icon size={22} strokeWidth={2.2} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                        {label}
+                      </p>
+                      <p className="mt-1 text-base font-semibold text-slate-800">{value}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              <div className="space-y-4 pt-1">
+                <div className="mx-auto h-1.5 w-56 overflow-hidden rounded-full bg-emerald-50 shadow-inner md:w-64">
+                  <motion.div
+                    className="h-full rounded-full bg-gradient-to-r from-emerald-300 via-emerald-500 to-teal-400"
+                    initial={{ width: "0%" }}
+                    animate={{ width: "100%" }}
+                    transition={{ duration: 1.2, ease: "easeInOut" }}
+                  />
+                </div>
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-300">
+                  Preparing your workspace
+                </p>
+              </div>
             </div>
-            <p className="text-3xl font-black tracking-tight text-slate-900">Math Vision</p>
-            <p className="text-sm leading-relaxed text-slate-500">
-              បញ្ញាសិប្បនិម្មិតដោះស្រាយលំហាត់
-            </p>
           </motion.div>
         </div>
       </motion.div>

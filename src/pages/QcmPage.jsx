@@ -5,7 +5,6 @@ import {
   ArrowLeft,
   Check,
   ChevronRight,
-  Heart,
   Lock,
   Play,
   Trophy,
@@ -13,7 +12,9 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+import { ButtonSpinner } from "../components/ButtonSpinner.jsx";
 import { ScanHeader } from "../components/ScanHeader.jsx";
+import { SkeletonBlock } from "../components/SkeletonBlock.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { quizService } from "../services/quizService.js";
 
@@ -21,6 +22,94 @@ const springTransition = { type: "spring", stiffness: 360, damping: 30 };
 
 const EMPTY_LEVELS = [];
 const EMPTY_QUESTIONS = [];
+
+const SubjectSkeletonList = () => (
+  <section className="mt-4 space-y-3" aria-hidden="true">
+    {Array.from({ length: 4 }).map((_, index) => (
+      <div
+        key={`subject-skeleton-${index}`}
+        className="rounded-[2rem] border border-green-100/80 bg-white p-4 shadow-sm"
+      >
+        <div className="flex items-center gap-4">
+          <SkeletonBlock className="h-14 w-14 shrink-0 rounded-full" />
+          <div className="min-w-0 flex-1 space-y-2.5">
+            <SkeletonBlock className="h-5 w-40 rounded-lg" />
+            <SkeletonBlock className="h-4 w-full rounded-lg" />
+            <SkeletonBlock className="h-4 w-2/3 rounded-lg" />
+          </div>
+          <SkeletonBlock className="h-5 w-5 rounded-full" />
+        </div>
+      </div>
+    ))}
+  </section>
+);
+
+const LevelSkeletonList = () => (
+  <section className="mt-4 space-y-3" aria-hidden="true">
+    {Array.from({ length: 4 }).map((_, index) => (
+      <div
+        key={`level-skeleton-${index}`}
+        className="rounded-[2rem] border border-green-100/80 bg-white p-4 shadow-sm"
+      >
+        <div className="flex items-start gap-4">
+          <SkeletonBlock className="h-12 w-12 shrink-0 rounded-full" />
+          <div className="min-w-0 flex-1 space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="space-y-2">
+                <SkeletonBlock className="h-5 w-36 rounded-lg" />
+                <SkeletonBlock className="h-4 w-44 rounded-lg" />
+              </div>
+              <SkeletonBlock className="h-8 w-16 rounded-full" />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <SkeletonBlock className="h-3.5 w-20 rounded-full" />
+                <SkeletonBlock className="h-3.5 w-16 rounded-full" />
+              </div>
+              <SkeletonBlock className="h-1.5 w-full rounded-full" />
+            </div>
+          </div>
+        </div>
+      </div>
+    ))}
+  </section>
+);
+
+const QuestionSkeleton = () => (
+  <main className="mt-3 flex-1" aria-hidden="true">
+    <section className="rounded-[2rem] bg-white p-4 shadow-[0_22px_50px_rgba(34,197,94,0.10)]">
+      <SkeletonBlock className="h-6 w-44 rounded-full" />
+      <div className="mt-3 space-y-2">
+        <SkeletonBlock className="h-4 w-28 rounded-lg" />
+        <SkeletonBlock className="h-7 w-full rounded-xl" />
+        <SkeletonBlock className="h-7 w-5/6 rounded-xl" />
+        <div className="rounded-[1.5rem] border border-green-100 bg-green-50/70 px-4 py-5">
+          <div className="space-y-3">
+            <SkeletonBlock className="mx-auto h-7 w-2/3 rounded-xl" />
+            <SkeletonBlock className="mx-auto h-7 w-1/2 rounded-xl" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section className="mt-3 space-y-2.5">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <div
+          key={`question-option-skeleton-${index}`}
+          className="rounded-[2rem] border-2 border-slate-100 bg-white px-4 py-3.5 shadow-sm"
+        >
+          <div className="flex items-start gap-3.5">
+            <SkeletonBlock className="mt-0.5 h-8 w-8 shrink-0 rounded-2xl" />
+            <div className="min-w-0 flex-1 space-y-2">
+              <SkeletonBlock className="h-5 w-full rounded-lg" />
+              <SkeletonBlock className="h-5 w-3/4 rounded-lg" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </section>
+  </main>
+);
 
 export const QcmPage = () => {
   const navigate = useNavigate();
@@ -276,10 +365,10 @@ export const QcmPage = () => {
         </p>
         <button
           type="button"
-          onClick={loginWithGoogle}
-          className="mt-5 rounded-2xl bg-green-600 px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_36px_rgba(16,185,129,0.22)] transition hover:bg-green-700"
+          onClick={() => { navigate("/login"); }}
+          className="mt-5 rounded-2xl bg-green-600 px-6 py-3 text-sm font-semibold text-white shadow-[0_18px_36px_rgba(16,185,129,0.22)] transition hover:bg-green-700"
         >
-          Login with Google
+          Login
         </button>
       </section>
     </main>
@@ -306,7 +395,14 @@ export const QcmPage = () => {
 
         {isAuthLoading ? (
           <main className="flex flex-1 items-center justify-center px-4 py-8">
-            <div className="rounded-full border border-green-100 bg-white px-4 py-2 text-sm font-medium text-slate-500 shadow-sm">
+            <div className="w-full max-w-sm rounded-[2rem] border border-green-100 bg-white p-5 shadow-sm">
+              <div className="space-y-3">
+                <SkeletonBlock className="h-5 w-36 rounded-lg" />
+                <SkeletonBlock className="h-4 w-full rounded-lg" />
+                <SkeletonBlock className="h-11 w-full rounded-2xl" />
+              </div>
+            </div>
+            <div className="hidden rounded-full border border-green-100 bg-white px-4 py-2 text-sm font-medium text-slate-500 shadow-sm">
               កំពុងផ្ទុក...
             </div>
           </main>
@@ -328,9 +424,12 @@ export const QcmPage = () => {
             </section>
 
             {isLoadingSubjects ? (
-              <div className="mt-4 rounded-[1.5rem] border border-green-100 bg-white px-4 py-3 text-sm text-slate-500">
+              <>
+                <SubjectSkeletonList />
+                <div className="hidden mt-4 rounded-[1.5rem] border border-green-100 bg-white px-4 py-3 text-sm text-slate-500">
                 កំពុងទាញយកមុខវិជ្ជា...
-              </div>
+                </div>
+              </>
             ) : (
               <section className="mt-4 space-y-3">
                 {subjects.map((subject, index) => {
@@ -411,9 +510,12 @@ export const QcmPage = () => {
             </section>
 
             {isLoadingLevels ? (
-              <div className="mt-4 rounded-[1.5rem] border border-green-100 bg-white px-4 py-3 text-sm text-slate-500">
+              <>
+                <LevelSkeletonList />
+                <div className="hidden mt-4 rounded-[1.5rem] border border-green-100 bg-white px-4 py-3 text-sm text-slate-500">
                 កំពុងទាញយកកម្រិត...
-              </div>
+                </div>
+              </>
             ) : (
               <section className="mt-4 space-y-3">
                 {subjectLevels.map((level, index) => {
@@ -525,17 +627,7 @@ export const QcmPage = () => {
                     <span>Back</span>
                   </button>
 
-                  <div className="flex items-center gap-2">
-                    <div className="inline-flex h-10 items-center gap-1.5 rounded-full border border-rose-100 bg-rose-50 px-3 text-sm font-semibold text-rose-500">
-                      {Array.from({ length: 3 }).map((_, index) => (
-                        <Heart
-                          key={index}
-                          className={`h-4 w-4 ${
-                            index < lives ? "fill-rose-500 text-rose-500" : "text-rose-200"
-                          }`}
-                        />
-                      ))}
-                    </div>
+                  <div className="flex items-center">
                     <button
                       type="button"
                       onClick={() => navigate("/")}
@@ -567,9 +659,12 @@ export const QcmPage = () => {
             </header>
 
             {isLoadingQuestions ? (
-              <div className="mt-4 rounded-[1.5rem] border border-green-100 bg-white px-4 py-3 text-sm text-slate-500">
+              <>
+                <QuestionSkeleton />
+                <div className="hidden mt-4 rounded-[1.5rem] border border-green-100 bg-white px-4 py-3 text-sm text-slate-500">
                 កំពុងទាញយកសំណួរ...
-              </div>
+                </div>
+              </>
             ) : currentQuestion ? (
               <main className="mt-3 flex-1">
                 <section className="relative rounded-[2rem] bg-white p-4 shadow-[0_22px_50px_rgba(34,197,94,0.10)]">
@@ -705,9 +800,12 @@ export const QcmPage = () => {
                         isCurrentAnswerCorrect
                           ? "bg-white text-green-700 hover:bg-green-50"
                           : "bg-white text-red-600 hover:bg-rose-50"
-                      } disabled:cursor-not-allowed disabled:opacity-70`}
+                        } disabled:cursor-not-allowed disabled:opacity-70`}
                     >
-                      {isSubmittingLevel ? "Saving..." : isLastQuestion || lives === 0 ? "Finish" : "Next"}
+                      <span className="inline-flex items-center gap-2">
+                        {isSubmittingLevel ? <ButtonSpinner className="h-4 w-4" /> : null}
+                        <span>{isLastQuestion || lives === 0 ? "Finish" : "Next"}</span>
+                      </span>
                     </button>
                   </div>
                 </div>

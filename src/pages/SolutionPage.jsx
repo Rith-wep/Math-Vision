@@ -65,10 +65,63 @@ const stripLatexForPlainResult = (value) => {
 
 const hasKhmerText = (value) => /[\u1780-\u17FF]/.test(value);
 
+const delimitedMathPattern = /\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)|\$\$[\s\S]+?\$\$|\$[^$\n]+\$/g;
+
+const commandMathPattern =
+  /\\(?:frac|sqrt|Delta|pi|times|div|sin|cos|tan|log|ln|int|cdot|left|right|theta|alpha|beta|gamma|sum|Sigma)(?:\{[^{}]*\})*(?:\s*[=+\-*/]\s*[a-zA-Z0-9\\{}^().,+-]+)*/g;
+
+const plainMathPattern =
+  /[a-zA-Z0-9]+(?:\^\{?[^}\s]+\}?)*(?:\s*[=+\-*/]\s*[a-zA-Z0-9\\{}^().,+-]+)+/g;
+
+const isDelimitedMathOnlyLine = (value) => {
+  const trimmed = value.trim();
+
+  return (
+    /^\\\[[\s\S]+\\\]$/.test(trimmed)
+    || /^\\\([\s\S]+\\\)$/.test(trimmed)
+    || /^\$\$[\s\S]+\$\$$/.test(trimmed)
+    || /^\$[^$\n]+\$$/.test(trimmed)
+  );
+};
+
+const splitInlineMathSegments = (text) => {
+  if (!text) {
+    return [];
+  }
+
+  const pattern = new RegExp(
+    `(${delimitedMathPattern.source}|${commandMathPattern.source}|${plainMathPattern.source})`,
+    "g"
+  );
+
+  return text.split(pattern).filter(Boolean).map((segment) => {
+    const trimmed = segment.trim();
+    const isMath =
+      isDelimitedMathOnlyLine(trimmed)
+      || trimmed.startsWith("\\")
+      || (/^[a-zA-Z0-9\\{}^().+\-*/=,\s]+$/.test(trimmed)
+        && /[\\^_=+\-*/]/.test(trimmed)
+        && !hasKhmerText(trimmed));
+
+    return {
+      type: isMath ? "math" : "text",
+      value: segment
+    };
+  });
+};
+
 const isLikelyMathLine = (line) => {
   const trimmed = line.trim();
 
-  if (!trimmed || hasKhmerText(trimmed)) {
+  if (!trimmed) {
+    return false;
+  }
+
+  if (isDelimitedMathOnlyLine(trimmed)) {
+    return true;
+  }
+
+  if (hasKhmerText(trimmed)) {
     return false;
   }
 
@@ -101,6 +154,20 @@ const renderInlineKhmerMath = (text) => {
   });
 };
 
+const renderInlineKhmerMathSafe = (text) => {
+  if (!text) {
+    return null;
+  }
+
+  return splitInlineMathSegments(text).map((segment, index) => {
+    if (segment.type === "math") {
+      return <InlineMath key={`safe-math-${index}`} math={sanitizeLatex(segment.value)} />;
+    }
+
+    return <span key={`safe-text-${index}`}>{segment.value}</span>;
+  });
+};
+
 const renderKhmerExplanation = (text) => {
   if (!text) {
     return null;
@@ -121,7 +188,7 @@ const renderKhmerExplanation = (text) => {
 
     return (
       <p key={`line-${index}`} className="leading-relaxed">
-        {renderInlineKhmerMath(line)}
+        {renderInlineKhmerMathSafe(line)}
       </p>
     );
   });

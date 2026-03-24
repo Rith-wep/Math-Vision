@@ -12,11 +12,15 @@ const resolveBackendBaseUrl = () => {
     return apiBaseUrl.replace(/\/api\/?$/, "");
   }
 
-  if (import.meta.env.DEV) {
-    return "http://localhost:5000";
+  if (typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+    return window.location.origin.replace(/\/$/, "");
   }
 
-  throw new Error("Missing VITE_BACKEND_URL or VITE_API_BASE_URL in production.");
+  if (import.meta.env.DEV) {
+    return window.location.origin.replace(/\/$/, "");
+  }
+
+  throw new Error("Missing VITE_BACKEND_URL or VITE_API_BASE_URL.");
 };
 
 const backendBaseUrl = resolveBackendBaseUrl();
