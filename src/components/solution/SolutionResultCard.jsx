@@ -1,5 +1,6 @@
 import { memo } from "react";
-import { BlockMath } from "react-katex";
+
+import { SafeMath } from "./SafeMath.jsx";
 
 export const SolutionResultCard = memo(function SolutionResultCard({
   plainFinalAnswer,
@@ -12,7 +13,11 @@ export const SolutionResultCard = memo(function SolutionResultCard({
           Result
         </p>
         <div className="mt-3 overflow-x-auto text-3xl font-extrabold text-green-700">
-          {plainFinalAnswer ? <p>{plainFinalAnswer}</p> : <BlockMath math={cleanFinalAnswer} />}
+          {plainFinalAnswer ? (
+            <p>{plainFinalAnswer}</p>
+          ) : (
+            <SafeMath math={cleanFinalAnswer} mode="block" fallbackClassName="whitespace-pre-wrap" />
+          )}
         </div>
       </div>
     </section>

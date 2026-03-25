@@ -1,7 +1,6 @@
-const DELIMITED_MATH_ONLY_PATTERN =
+const DELIMITED_MATH_PATTERN = /(\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)|\$\$[\s\S]+?\$\$|\$[^$\n]+\$)/g;
+const DELIMITED_MATH_EXACT_PATTERN =
   /^\\\[[\s\S]+\\\]$|^\\\([\s\S]+\\\)$|^\$\$[\s\S]+\$\$$|^\$[^$\n]+\$$/;
-
-const INLINE_MATH_PATTERN = /(\$\$[\s\S]+?\$\$|\$[^$\n]+\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)|\\[a-zA-Z]+(?:\{[^{}]*\})*(?:\s*[=+\-*/]\s*[a-zA-Z0-9\\{}^().,+-]+)*|[a-zA-Z0-9]+(?:\^\{?[^}\s]+\}?)*(?:\s*[=+\-*/]\s*[a-zA-Z0-9\\{}^().,+-]+)+)/g;
 
 export const sanitizeLatex = (value) => {
   if (!value) {
@@ -30,47 +29,37 @@ export const stripLatexForPlainResult = (value) => {
   return "";
 };
 
-export const hasKhmerText = (value) => /[\u1780-\u17FF]/.test(value || "");
+export const containsKhmer = (value) => /[\u1780-\u17FF]/.test(value || "");
 
-export const isDelimitedMathOnlyLine = (value) => DELIMITED_MATH_ONLY_PATTERN.test((value || "").trim());
+export const isExplicitMath = (value) => DELIMITED_MATH_EXACT_PATTERN.test((value || "").trim());
 
-export const splitInlineMathSegments = (text) => {
+export const splitDelimitedMathSegments = (text) => {
   if (!text) {
     return [];
   }
 
-  return text.split(INLINE_MATH_PATTERN).filter(Boolean).map((segment) => {
-    const trimmed = segment.trim();
-    const isMath =
-      isDelimitedMathOnlyLine(trimmed)
-      || trimmed.startsWith("\\")
-      || (/^[a-zA-Z0-9\\{}^().+\-*/=,\s]+$/.test(trimmed)
-        && /[\\^_=+\-*/]/.test(trimmed)
-        && !hasKhmerText(trimmed));
-
-    return {
-      type: isMath ? "math" : "text",
-      value: segment
-    };
-  });
+  return text.split(DELIMITED_MATH_PATTERN).filter(Boolean).map((segment) => ({
+    type: DELIMITED_MATH_EXACT_PATTERN.test(segment.trim()) ? "math" : "text",
+    value: segment
+  }));
 };
 
-export const isLikelyMathLine = (line) => {
-  const trimmed = (line || "").trim();
+export const shouldPreferBlockMath = (value) => {
+  const trimmed = (value || "").trim();
 
   if (!trimmed) {
     return false;
   }
 
-  if (isDelimitedMathOnlyLine(trimmed)) {
+  if (DELIMITED_MATH_EXACT_PATTERN.test(trimmed)) {
     return true;
   }
 
-  if (hasKhmerText(trimmed)) {
+  if (containsKhmer(trimmed)) {
     return false;
   }
 
-  return /[\\^_=+\-*/()[\]{}]/.test(trimmed) || /[a-zA-Z]\d|\d[a-zA-Z]/.test(trimmed);
+  return /\\[A-Za-z]+/.test(trimmed) || /[=^_]/.test(trimmed);
 };
 
 export const toPlainCopyText = (text) => {

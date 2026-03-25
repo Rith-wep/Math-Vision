@@ -16,12 +16,6 @@ const buildKey = (config) => {
   };
 };
 
-const solveKey = {
-  label: "Solve",
-  featured: true,
-  icon: Sparkles
-};
-
 const categoryConfig = {
   operators: {
     label: "Basic",
@@ -37,7 +31,7 @@ const categoryConfig = {
   },
   advanced: {
     label: "Calculus",
-    columns: 5
+    columns: 6
   }
 };
 
@@ -69,7 +63,7 @@ const keyboardLayouts = {
     buildKey({ label: "0", value: "0", tone: "number" }),
     buildKey({ label: ".", value: ".", tone: "number" }),
     buildKey({ label: "=", value: "=", tone: "operator", typography: "math", textClass: "text-[24px]" }),
-    solveKey
+    buildKey({ label: "+", value: "+", tone: "operator", typography: "math", textClass: "text-[24px]" })
   ],
   functions: [
     buildKey({ label: "|x|", template: "\\left| |\\right|", tone: "function", typography: "math" }),
@@ -98,7 +92,7 @@ const keyboardLayouts = {
     buildKey({ label: "ln", template: "\\ln(|)", tone: "function", textClass: "text-[19px]" }),
     buildKey({ label: "sign", template: "\\operatorname{sign}(|)", tone: "secondary", textClass: "text-[15px]" }),
     buildKey({ label: "\u2016 \u2016", template: "\\left\\| |\\right\\|", tone: "function", typography: "math" }),
-    solveKey
+    buildKey({ label: "\u03b8", value: "\\theta ", tone: "function", typography: "math", textClass: "text-[26px]" })
   ],
   trig: [
     buildKey({ label: "RAD", value: "\\mathrm{rad}", tone: "secondary", badge: true }),
@@ -127,7 +121,7 @@ const keyboardLayouts = {
     buildKey({ label: "tanh\u207b\u00b9", template: "\\operatorname{artanh}(|)", tone: "secondary", textClass: "text-[15px]" }),
     buildKey({ label: "coth\u207b\u00b9", template: "\\operatorname{arcoth}(|)", tone: "secondary", textClass: "text-[15px]" }),
     buildKey({ label: "\u03c0", value: "\\pi ", tone: "function", typography: "math", textClass: "text-[28px]" }),
-    solveKey
+    buildKey({ label: "^", value: "^{}", tone: "operator", typography: "math", textClass: "text-[24px]" })
   ],
   advanced: [
     buildKey({ label: "lim\u2093\u2192\u2080", template: "\\lim_{x \\to |}", tone: "function", textClass: "text-[15px]" }),
@@ -152,7 +146,45 @@ const keyboardLayouts = {
     buildKey({ label: "\u03a3", template: "\\sum_{n=1}^{|}", tone: "function", typography: "math", textClass: "text-[26px]" }),
     buildKey({ label: "\u03a0", template: "\\prod_{n=1}^{|}", tone: "function", typography: "math", textClass: "text-[26px]" }),
     buildKey({ label: "y'", value: "y'", tone: "function", typography: "math", textClass: "text-[22px]" }),
-    solveKey
+    buildKey({ label: "\u0394", value: "\\Delta ", tone: "function", typography: "math", textClass: "text-[26px]" }),
+    buildKey({ label: "\u2202", value: "\\partial ", tone: "function", typography: "math", textClass: "text-[26px]" }),
+    buildKey({ label: "\u2260", value: "\\neq ", tone: "operator", typography: "math", textClass: "text-[22px]" })
+  ]
+};
+
+const textKeyboardConfig = {
+  columns: 6,
+  keys: [
+    buildKey({ label: "a", value: "a", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "b", value: "b", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "c", value: "c", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "d", value: "d", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "e", value: "e", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "f", value: "f", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "g", value: "g", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "h", value: "h", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "i", value: "i", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "j", value: "j", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "k", value: "k", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "l", value: "l", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "m", value: "m", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "n", value: "n", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "o", value: "o", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "p", value: "p", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "q", value: "q", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "r", value: "r", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "s", value: "s", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "t", value: "t", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "u", value: "u", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "v", value: "v", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "w", value: "w", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "x", value: "x", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "y", value: "y", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: "z", value: "z", tone: "function", typography: "math", textClass: "italic" }),
+    buildKey({ label: ".", value: ".", tone: "number" }),
+    buildKey({ label: ",", value: ",", tone: "number" }),
+    buildKey({ label: "'", value: "'", tone: "number" }),
+    buildKey({ label: "space", value: " ", tone: "secondary", textClass: "text-[13px] uppercase tracking-[0.08em]" })
   ]
 };
 
@@ -160,14 +192,11 @@ const utilityButtons = [
   { id: "text", label: "abc", type: "label" },
   { id: "left", icon: ArrowLeft, type: "move-left" },
   { id: "right", icon: ArrowRight, type: "move-right" },
-  { id: "delete", icon: Delete, type: "delete" }
+  { id: "delete", icon: Delete, type: "delete" },
+  { id: "solve", icon: Sparkles, type: "solve" }
 ];
 
 const getKeyButtonClasses = (key) => {
-  if (key.featured) {
-    return "border-emerald-500 bg-emerald-500 text-white shadow-[0_10px_22px_rgba(34,197,94,0.22)] active:brightness-90";
-  }
-
   if (key.tone === "number") {
     return "border-slate-200 bg-white text-slate-900 shadow-sm active:bg-slate-50";
   }
@@ -184,15 +213,17 @@ const getKeyButtonClasses = (key) => {
 };
 
 const getLabelClasses = (key) => {
+  const labelLength = (key.label || "").length;
   const baseSize =
-    key.tone === "number"
-      ? "text-[23px] font-semibold"
-      : key.tone === "operator"
-        ? "text-[22px] font-medium"
-        : "text-[18px] font-medium";
+    labelLength >= 8
+      ? "text-[11px] font-medium sm:text-[12px]"
+      : labelLength >= 5
+        ? "text-[13px] font-medium sm:text-[14px]"
+        : "text-[16px] font-medium sm:text-[18px]";
   const mathFont = key.typography === "math" ? "[font-family:'Times_New_Roman',serif]" : "font-sans";
+  const textColor = "text-slate-800";
 
-  return `flex h-full w-full items-center justify-center text-center leading-none ${baseSize} ${mathFont} ${
+  return `flex h-full w-full min-w-0 items-center justify-center px-1 text-center leading-tight ${baseSize} ${mathFont} ${textColor} ${
     key.badge
       ? "mx-auto w-auto rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-[12px] font-semibold tracking-[0.08em] text-emerald-700"
       : ""
@@ -209,19 +240,24 @@ export const MathKeyboard = ({
   canMoveRight = false,
   disabled = false
 }) => {
+  const [inputMode, setInputMode] = useState("math");
   const [activeCategory, setActiveCategory] = useState("operators");
-  const activeConfig = categoryConfig[activeCategory];
-  const keys = keyboardLayouts[activeCategory];
+  const activeConfig = inputMode === "text" ? textKeyboardConfig : categoryConfig[activeCategory];
+  const keys = inputMode === "text" ? textKeyboardConfig.keys : keyboardLayouts[activeCategory];
 
   const utilityState = useMemo(
     () => ({
       "move-left": { disabled: disabled || !canMoveLeft, onClick: onMoveLeft },
       "move-right": { disabled: disabled || !canMoveRight, onClick: onMoveRight },
+      solve: { disabled, onClick: onSolve },
       delete: { disabled, onClick: onDelete },
-      label: { disabled: false, onClick: undefined },
+      label: {
+        disabled: false,
+        onClick: () => setInputMode((currentMode) => (currentMode === "math" ? "text" : "math"))
+      },
       placeholder: { disabled: false, onClick: undefined }
     }),
-    [canMoveLeft, canMoveRight, disabled, onDelete, onMoveLeft, onMoveRight]
+    [canMoveLeft, canMoveRight, disabled, onDelete, onMoveLeft, onMoveRight, onSolve]
   );
 
   return (
@@ -241,83 +277,80 @@ export const MathKeyboard = ({
                   disabled={state?.disabled}
                   className={`flex items-center justify-center text-slate-900 transition duration-200 ${
                     button.type === "label"
-                      ? "min-w-[3.25rem] justify-start pl-2 text-[17px] font-medium"
+                      ? "min-w-[3.5rem] justify-start rounded-lg border border-emerald-200 bg-white px-3 text-[17px] font-medium text-emerald-700 shadow-sm hover:border-emerald-300 hover:bg-white active:bg-white"
+                      : button.type === "solve"
+                        ? "ml-2 h-10 min-w-[3.25rem] rounded-lg bg-emerald-500 px-3 text-white shadow-[0_8px_18px_rgba(16,185,129,0.24)] hover:bg-emerald-600 active:bg-emerald-700"
                       : button.type === "delete"
                         ? "ml-auto h-10 w-10 rounded-lg border border-slate-100 hover:bg-slate-50 active:bg-slate-100"
                         : "h-9 w-9 rounded-lg hover:bg-slate-50 active:bg-slate-100"
                   } ${state?.disabled ? "opacity-40" : ""}`}
                 >
-                  {Icon ? <Icon className="h-6 w-6 stroke-[1.8]" /> : <span>{button.label}</span>}
+                  {button.type === "solve" ? (
+                    <span className="flex items-center gap-1.5 text-sm font-semibold">
+                      {Icon ? <Icon className="h-4 w-4" /> : null}
+                      <span>Solve</span>
+                    </span>
+                  ) : Icon ? (
+                    <Icon className="h-6 w-6 stroke-[1.8]" />
+                  ) : (
+                    <span>{inputMode === "math" ? button.label : "123"}</span>
+                  )}
                 </button>
               );
             })}
           </div>
         </div>
 
-        <div className="px-3.5 pb-2 pt-2">
-          <div
-            className="grid gap-2"
-            style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}
-          >
-            {Object.entries(categoryConfig).map(([categoryKey, category]) => {
-              const isActive = activeCategory === categoryKey;
+        {inputMode === "math" ? (
+          <div className="px-3.5 pb-2 pt-2">
+            <div
+              className="grid gap-2"
+              style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}
+            >
+              {Object.entries(categoryConfig).map(([categoryKey, category]) => {
+                const isActive = activeCategory === categoryKey;
 
-              return (
-                <button
-                  key={categoryKey}
-                  type="button"
-                  onClick={() => setActiveCategory(categoryKey)}
-                  className={`relative mt-1.5 flex h-9 min-w-0 items-center justify-center overflow-hidden rounded-lg border px-2 text-center font-sans transition duration-200 ${
-                    isActive
-                      ? "border-emerald-100 bg-white text-emerald-600 shadow-[0_8px_18px_rgba(16,185,129,0.10)]"
-                      : "border-slate-100 bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100"
-                  }`}
-                >
-                  <span className="truncate text-[11px] font-bold tracking-[0.01em] sm:text-[13px]">
-                    {category.label}
-                  </span>
-                  {isActive ? (
-                    <span className="absolute bottom-1 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-emerald-600" />
-                  ) : null}
-                </button>
-              );
-            })}
+                return (
+                  <button
+                    key={categoryKey}
+                    type="button"
+                    onClick={() => setActiveCategory(categoryKey)}
+                    className={`relative mt-1.5 flex h-9 min-w-0 items-center justify-center overflow-hidden rounded-lg border px-2 text-center font-sans transition duration-200 ${
+                      isActive
+                        ? "border-emerald-100 bg-white text-emerald-600 shadow-[0_8px_18px_rgba(16,185,129,0.10)]"
+                        : "border-slate-100 bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100"
+                    }`}
+                  >
+                    <span className="truncate text-[11px] font-bold tracking-[0.01em] sm:text-[13px]">
+                      {category.label}
+                    </span>
+                    {isActive ? (
+                      <span className="absolute bottom-1 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-emerald-600" />
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        ) : null}
 
         <div
           className="mt-1.5 grid gap-2 px-3.5 pb-4"
           style={{ gridTemplateColumns: `repeat(${activeConfig.columns}, minmax(0, 1fr))` }}
         >
           {keys.map((key) => {
-            const Icon = key.icon;
-
             return (
               <motion.button
                 key={`${activeCategory}-${key.label}-${key.value || key.template || "solve"}`}
                 type="button"
-                onClick={() => {
-                  if (key.featured) {
-                    onSolve?.();
-                    return;
-                  }
-
-                  onKeyPress?.(key);
-                }}
+                onClick={() => onKeyPress?.(key)}
                 disabled={disabled}
                 whileTap={{ scale: 0.98 }}
-                className={`aspect-square w-full rounded-[1.2rem] border px-2 py-1.5 text-center transition duration-200 disabled:opacity-50 ${getKeyButtonClasses(
+                className={`aspect-square w-full overflow-hidden rounded-[1.2rem] border px-2 py-1.5 text-center transition duration-200 disabled:opacity-50 ${getKeyButtonClasses(
                   key
                 )}`}
               >
-                {key.featured ? (
-                  <span className="flex h-full w-full items-center justify-center gap-1.5 whitespace-nowrap text-[14px] font-semibold">
-                    {Icon ? <Icon className="h-4 w-4" /> : null}
-                    <span>=</span>
-                  </span>
-                ) : (
-                  <span className={getLabelClasses(key)}>{key.label}</span>
-                )}
+                <span className={getLabelClasses(key)}>{key.label}</span>
               </motion.button>
             );
           })}

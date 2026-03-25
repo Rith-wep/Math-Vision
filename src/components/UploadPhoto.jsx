@@ -70,6 +70,42 @@ const createInitialCropBox = (boundsWidth, boundsHeight) => {
   };
 };
 
+const getCoveredMediaRect = (containerWidth, containerHeight, mediaWidth, mediaHeight) => {
+  if (!containerWidth || !containerHeight || !mediaWidth || !mediaHeight) {
+    return {
+      width: containerWidth,
+      height: containerHeight,
+      offsetX: 0,
+      offsetY: 0
+    };
+  }
+
+  const containerRatio = containerWidth / containerHeight;
+  const mediaRatio = mediaWidth / mediaHeight;
+
+  if (mediaRatio > containerRatio) {
+    const height = containerHeight;
+    const width = height * mediaRatio;
+
+    return {
+      width,
+      height,
+      offsetX: (containerWidth - width) / 2,
+      offsetY: 0
+    };
+  }
+
+  const width = containerWidth;
+  const height = width / mediaRatio;
+
+  return {
+    width,
+    height,
+    offsetX: 0,
+    offsetY: (containerHeight - height) / 2
+  };
+};
+
 const loadImageFromSource = (src) =>
   new Promise((resolve, reject) => {
     const image = new Image();
@@ -411,12 +447,6 @@ export const UploadPhoto = ({ open, onClose, onScanComplete }) => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const frameRect = frameRef.current.getBoundingClientRect();
-    const scaleX = video.videoWidth / frameRect.width;
-    const scaleY = video.videoHeight / frameRect.height;
-    const sourceX = Math.max(0, Math.round(cropBox.x * scaleX));
-    const sourceY = Math.max(0, Math.round(cropBox.y * scaleY));
-    const sourceWidth = Math.max(1, Math.round(cropBox.width * scaleX));
-    const sourceHeight = Math.max(1, Math.round(cropBox.height * scaleY));
 
     if (!video.videoWidth || !video.videoHeight || !isCameraReady) {
       setErrorMessage(toKhmerErrorMessage("Camera is not ready yet. Please try again."));
@@ -426,6 +456,23 @@ export const UploadPhoto = ({ open, onClose, onScanComplete }) => {
     if (isProcessing) {
       return;
     }
+
+    const coveredVideoRect = getCoveredMediaRect(
+      frameRect.width,
+      frameRect.height,
+      video.videoWidth,
+      video.videoHeight
+    );
+    const scaleX = video.videoWidth / coveredVideoRect.width;
+    const scaleY = video.videoHeight / coveredVideoRect.height;
+    const cropLeft = cropBox.x - coveredVideoRect.offsetX;
+    const cropTop = cropBox.y - coveredVideoRect.offsetY;
+    const sourceX = Math.max(0, Math.round(cropLeft * scaleX));
+    const sourceY = Math.max(0, Math.round(cropTop * scaleY));
+    const maxSourceWidth = Math.max(1, video.videoWidth - sourceX);
+    const maxSourceHeight = Math.max(1, video.videoHeight - sourceY);
+    const sourceWidth = Math.min(maxSourceWidth, Math.max(1, Math.round(cropBox.width * scaleX)));
+    const sourceHeight = Math.min(maxSourceHeight, Math.max(1, Math.round(cropBox.height * scaleY)));
 
     canvas.width = sourceWidth;
     canvas.height = sourceHeight;

@@ -1,9 +1,8 @@
 import { memo } from "react";
 import { ChevronDown } from "lucide-react";
-import { BlockMath } from "react-katex";
 
 import { ExplanationContent } from "./SolutionMathContent.jsx";
-import { sanitizeLatex } from "../../utils/solution/latex.js";
+import { SafeMath } from "./SafeMath.jsx";
 
 export const SolutionStepCard = memo(function SolutionStepCard({
   index,
@@ -77,7 +76,7 @@ export const SolutionStepCard = memo(function SolutionStepCard({
                 : "bg-green-50"
             }`}
           >
-            <BlockMath math={sanitizeLatex(formula)} />
+            <SafeMath math={formula} mode="block" fallbackClassName="whitespace-pre-wrap" />
           </div>
         ) : null}
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import katex from "katex";
 import { BlockMath } from "react-katex";
@@ -115,6 +115,7 @@ const isLikelyMathExpression = (value) => /[0-9xyz=+\-*/^()\\]/i.test(value);
 export const SolvePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const inputSectionRef = useRef(null);
   const [formulaSuggestions, setFormulaSuggestions] = useState([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -205,6 +206,27 @@ export const SolvePage = () => {
           detail: { visible: false }
         })
       );
+    };
+  }, [isInputReady]);
+
+  useEffect(() => {
+    if (!isInputReady || !inputSectionRef.current) {
+      return;
+    }
+
+    const scrollTargetIntoView = () => {
+      inputSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    };
+
+    const animationFrameId = window.requestAnimationFrame(scrollTargetIntoView);
+    const timeoutId = window.setTimeout(scrollTargetIntoView, 220);
+
+    return () => {
+      window.cancelAnimationFrame(animationFrameId);
+      window.clearTimeout(timeoutId);
     };
   }, [isInputReady]);
 
@@ -299,7 +321,7 @@ export const SolvePage = () => {
 
         <main
           className={`flex-1 bg-gradient-to-b from-green-50 via-white to-slate-50 px-4 pt-4 md:px-5 lg:px-6 ${
-            isInputReady ? "pb-56" : "pb-6"
+            isInputReady ? "pb-72 sm:pb-80" : "pb-6"
           }`}
         >
           <button
@@ -335,7 +357,10 @@ export const SolvePage = () => {
               })}
             </div>
 
-            <div className="premium-surface my-3 overflow-hidden rounded-[2rem] border border-green-100/80 bg-white/95">
+            <div
+              ref={inputSectionRef}
+              className="premium-surface my-3 scroll-mt-24 overflow-hidden rounded-[2rem] border border-green-100/80 bg-white/95"
+            >
               <div className="border-b border-green-100/80 bg-gradient-to-br from-green-50 via-white to-white px-4 py-3">
                 <div className="premium-card relative overflow-hidden rounded-3xl border border-green-100/80 bg-white px-4 py-3 text-center">
                   <div className="mb-2 flex items-center justify-center gap-2 whitespace-nowrap">
