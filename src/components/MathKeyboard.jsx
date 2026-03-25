@@ -148,7 +148,9 @@ const keyboardLayouts = {
     buildKey({ label: "y'", value: "y'", tone: "function", typography: "math", textClass: "text-[22px]" }),
     buildKey({ label: "\u0394", value: "\\Delta ", tone: "function", typography: "math", textClass: "text-[26px]" }),
     buildKey({ label: "\u2202", value: "\\partial ", tone: "function", typography: "math", textClass: "text-[26px]" }),
-    buildKey({ label: "\u2260", value: "\\neq ", tone: "operator", typography: "math", textClass: "text-[22px]" })
+    buildKey({ label: "\u2260", value: "\\neq ", tone: "operator", typography: "math", textClass: "text-[22px]" }),
+    buildKey({ label: "{", value: "{", tone: "function", typography: "math", textClass: "text-[24px]" }),
+    buildKey({ label: "}", value: "}", tone: "function", typography: "math", textClass: "text-[24px]" })
   ]
 };
 

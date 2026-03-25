@@ -7,6 +7,7 @@ import { BottomNavigation } from "./components/BottomNavigation.jsx";
 import { DocsPage } from "./pages/DocsPage.jsx";
 import { AuthCallbackPage } from "./pages/AuthCallbackPage.jsx";
 import { DashboardPage } from "./pages/DashboardPage.jsx";
+import { AboutUsPage } from "./pages/AboutUsPage.jsx";
 import { HomePage } from "./pages/HomePage.jsx";
 import { HistoryPage } from "./pages/HistoryPage.jsx";
 import { LoginPage } from "./pages/LoginPage.jsx";
@@ -233,6 +234,7 @@ const App = () => {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/about-us" element={<AboutUsPage />} />
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/qcm" element={<QcmPage />} />
           <Route path="/solve" element={<SolvePage />} />

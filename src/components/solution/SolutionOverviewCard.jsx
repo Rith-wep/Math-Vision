@@ -2,6 +2,15 @@ import { memo, useMemo } from "react";
 
 import { getSolutionTags } from "../../utils/solution/solutionFormatting.js";
 
+const OVERVIEW_COPY = {
+  geometry:
+    "ដំណោះស្រាយត្រូវបានរៀបចំតាមលំដាប់ច្បាស់លាស់ សម្រាប់មេរៀនវិចិត្រសាស្ត្រ និងធរណីមាត្រ ដើម្បីងាយស្រួលតាមដានគ្រប់ជំហាននៃការគណនា។",
+  long:
+    "ចម្លើយត្រូវបានបំបែកជាជំហានបន្តបន្ទាប់ ដើម្បីឱ្យការតាមដាន និងយល់ពីវិធីដោះស្រាយកាន់តែងាយស្រួល។",
+  default:
+    "ចម្លើយត្រូវបានរៀបចំជាជំហានខ្លីៗ ច្បាស់លាស់ និងមានទាំងរូបមន្ត និងការពន្យល់សំខាន់ៗ។"
+};
+
 export const SolutionOverviewCard = memo(function SolutionOverviewCard({ solutionStyle, stepsCount }) {
   const tags = useMemo(() => getSolutionTags(solutionStyle, stepsCount), [solutionStyle, stepsCount]);
 
@@ -21,10 +30,10 @@ export const SolutionOverviewCard = memo(function SolutionOverviewCard({ solutio
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">
             {solutionStyle === "geometry"
-              ? "This answer is arranged for a longer vector or analytic geometry workflow so each derivation stays readable."
+              ? OVERVIEW_COPY.geometry
               : solutionStyle === "long"
-                ? "This problem needs a few connected steps, so the solution is grouped for easier reading."
-                : "The answer is organized into concise steps with formulas and explanation together."}
+                ? OVERVIEW_COPY.long
+                : OVERVIEW_COPY.default}
           </p>
         </div>
 

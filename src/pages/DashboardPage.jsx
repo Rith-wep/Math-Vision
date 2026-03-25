@@ -107,7 +107,7 @@ export const DashboardPage = () => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -16 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
-      className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(220,252,231,0.9),_transparent_40%),linear-gradient(to_bottom,_#f0fdf4,_#ffffff_38%,_#f8fafc)]"
+      className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(34,197,94,0.16),_transparent_40%),linear-gradient(to_bottom,_#f0fdf4,_#ffffff_38%,_#f8fafc)]"
     >
       <div className="app-shell-page mx-auto min-h-screen bg-white">
         <ScanHeader />
@@ -116,15 +116,15 @@ export const DashboardPage = () => {
           <button
             type="button"
             onClick={() => navigate("/")}
-            className="mb-3 inline-flex items-center gap-2 rounded-full border border-green-100/90 bg-white/95 px-3 py-2 text-sm font-medium text-green-700 shadow-[0_10px_28px_rgba(15,23,42,0.05)] transition hover:bg-green-50"
+            className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#22c55e]/20 bg-white/95 px-3 py-2 text-sm font-medium text-[#22c55e] shadow-[0_10px_28px_rgba(15,23,42,0.05)] transition hover:bg-[#22c55e]/5"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Back to Home</span>
           </button>
 
-          <section className="relative overflow-hidden rounded-[2rem] border border-green-100/80 bg-gradient-to-r from-white via-white to-green-50 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-            <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-green-100/40 blur-2xl" />
-            <div className="pointer-events-none absolute inset-y-0 right-0 w-28 bg-gradient-to-l from-green-50/70 to-transparent" />
+          <section className="relative overflow-hidden rounded-[2rem] border border-[#22c55e]/12 bg-gradient-to-r from-white via-white to-[#22c55e]/6 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+            <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#22c55e]/12 blur-2xl" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-28 bg-gradient-to-l from-[#22c55e]/10 to-transparent" />
 
             <div className="relative flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
@@ -136,7 +136,7 @@ export const DashboardPage = () => {
                   <h1 className="text-[1.42rem] font-black leading-tight tracking-tight text-slate-700">
                     {displayName}
                   </h1>
-                  <div className="inline-flex items-center gap-1 rounded-full border border-green-100 bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-green-700 shadow-sm">
+                  <div className="inline-flex items-center gap-1 rounded-full border border-[#22c55e]/15 bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-[#22c55e] shadow-sm">
                     <BadgeCheck className="h-3.5 w-3.5" />
                     <span>Pro</span>
                   </div>
@@ -147,7 +147,7 @@ export const DashboardPage = () => {
               
 
               <div className="shrink-0 rounded-full bg-white/90 p-1.5 shadow-[0_14px_30px_rgba(15,23,42,0.08)] backdrop-blur-sm">
-                <div className="rounded-full bg-gradient-to-br from-green-400 via-emerald-500 to-green-600 p-[2px]">
+                <div className="rounded-full bg-gradient-to-br from-emerald-400 via-[#22c55e] to-green-400 p-[2px]">
                   <div className="rounded-full bg-white p-[2px]">
                     <img
                       src={avatarUrl}
@@ -174,7 +174,7 @@ export const DashboardPage = () => {
                   key={card.id}
                   className="relative overflow-hidden rounded-[1.75rem] border border-slate-100/80 bg-white/95 p-3.5 shadow-[0_18px_35px_rgba(15,23,42,0.05)]"
                 >
-                  <div className="pointer-events-none absolute right-0 top-0 h-20 w-20 rounded-full bg-green-50/80 blur-2xl" />
+                  <div className="pointer-events-none absolute right-0 top-0 h-20 w-20 rounded-full bg-[#22c55e]/8 blur-2xl" />
 
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -184,14 +184,14 @@ export const DashboardPage = () => {
                       {isLoading ? (
                         <SkeletonBlock className="mt-2.5 h-10 w-24 rounded-xl" />
                       ) : (
-                        <p className="mt-2.5 bg-gradient-to-br from-green-500 to-green-700 bg-clip-text text-[2.45rem] font-black leading-none text-transparent">
+                        <p className="mt-2.5 bg-gradient-to-br from-emerald-400 via-[#22c55e] to-green-500 bg-clip-text text-[2.45rem] font-black leading-none text-transparent">
                           {card.value}
                         </p>
                       )}
                     </div>
 
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/70 bg-gradient-to-br from-white to-green-50 shadow-sm backdrop-blur-md">
-                      <Icon className="h-5 w-5 text-green-700" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/70 bg-gradient-to-br from-white to-[#22c55e]/8 shadow-sm backdrop-blur-md">
+                      <Icon className="h-5 w-5 text-[#22c55e]" />
                     </div>
                   </div>
 
@@ -206,17 +206,17 @@ export const DashboardPage = () => {
           <section className="mt-4 rounded-[1.75rem] border border-slate-100/80 bg-white/95 p-3.5 shadow-[0_18px_35px_rgba(15,23,42,0.05)]">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <h2 className="text-sm font-semibold text-green-900">Weekly Activity</h2>
+                <h2 className="text-sm font-semibold text-[#15803d]">Weekly Activity</h2>
                 <p className="mt-1 text-xs leading-relaxed text-slate-500">
                   ស្ថិតិដោះស្រាយលំហាត់ប្រចាំសប្ដាហ៍
                 </p>
               </div>
-              <div className="rounded-full border border-green-100 bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
+              <div className="rounded-full border border-[#22c55e]/15 bg-[#22c55e]/8 px-3 py-1 text-xs font-medium text-[#22c55e]">
                 {isLoading ? <SkeletonBlock className="h-4 w-16 rounded-full" /> : `${stats.weeklySolved} solved`}
               </div>
             </div>
 
-            <div className="mt-3 overflow-hidden rounded-3xl border border-green-100/70 bg-gradient-to-b from-green-50 via-white to-white p-3">
+            <div className="mt-3 overflow-hidden rounded-3xl border border-[#22c55e]/12 bg-gradient-to-b from-[#22c55e]/6 via-white to-white p-3">
               {isLoading ? (
                 <div className="space-y-3">
                   <SkeletonBlock className="h-40 w-full rounded-[1.5rem]" />
@@ -291,11 +291,11 @@ export const DashboardPage = () => {
 
           <section className="mt-4 rounded-[1.75rem] border border-slate-100/80 bg-gradient-to-br from-white via-green-50 to-white p-3.5 shadow-[0_18px_35px_rgba(15,23,42,0.05)]">
             <div className="flex items-center gap-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/80 bg-white text-green-700 shadow-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/80 bg-white text-[#22c55e] shadow-sm">
                 <Quote className="h-4 w-4" />
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-green-900">Motivation Quote</h2>
+                <h2 className="text-sm font-semibold text-[#15803d]">Motivation Quote</h2>
                 <p className="text-xs text-slate-400">Changes daily</p>
               </div>
             </div>

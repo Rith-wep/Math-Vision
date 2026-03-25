@@ -15,6 +15,8 @@ import { ScanHeader } from "../components/ScanHeader.jsx";
 import { SkeletonBlock } from "../components/SkeletonBlock.jsx";
 import { formulaService } from "../services/formulaService.js";
 
+const HISTORY_PAGE_SIZE = 5;
+
 const sanitizeLatex = (value) => {
   if (!value) {
     return "";
@@ -130,6 +132,7 @@ export const HistoryPage = () => {
   const [historyItems, setHistoryItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchValue, setSearchValue] = useState("");
+  const [visibleCount, setVisibleCount] = useState(HISTORY_PAGE_SIZE);
 
   useEffect(() => {
     const loadHistory = async () => {
@@ -156,7 +159,17 @@ export const HistoryPage = () => {
     );
   }, [historyItems, searchValue]);
 
-  const groupedHistory = useMemo(() => groupHistoryByDate(filteredHistory), [filteredHistory]);
+  useEffect(() => {
+    setVisibleCount(HISTORY_PAGE_SIZE);
+  }, [searchValue]);
+
+  const visibleHistory = useMemo(
+    () => filteredHistory.slice(0, visibleCount),
+    [filteredHistory, visibleCount]
+  );
+
+  const groupedHistory = useMemo(() => groupHistoryByDate(visibleHistory), [visibleHistory]);
+  const hasMoreHistory = filteredHistory.length > visibleCount;
 
   const handleDelete = async (historyItemId) => {
     const nextHistory = await formulaService.deleteHistoryItem(historyItemId);
@@ -273,97 +286,112 @@ export const HistoryPage = () => {
                 </button>
               </motion.div>
             ) : (
-              groupedHistory.map((group) => (
-                <section key={group.label} className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="h-px flex-1 bg-green-100" />
-                    <h2 className="text-[10px] font-semibold uppercase tracking-[0.32em] text-slate-400">
-                      {group.label}
-                    </h2>
-                    <div className="h-px flex-1 bg-green-100" />
-                  </div>
+              <>
+                {groupedHistory.map((group) => (
+                  <section key={group.label} className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="h-px flex-1 bg-green-100" />
+                      <h2 className="text-[10px] font-semibold uppercase tracking-[0.32em] text-slate-400">
+                        {group.label}
+                      </h2>
+                      <div className="h-px flex-1 bg-green-100" />
+                    </div>
 
-                  <div className="space-y-3.5">
-                    {group.items.map((item) => {
-                      const questionText = getQuestionText(item);
-                      const finalAnswer = getFinalAnswer(item);
-                      const storedSolution = getStoredSolution(item);
+                    <div className="space-y-3.5">
+                      {group.items.map((item) => {
+                        const questionText = getQuestionText(item);
+                        const finalAnswer = getFinalAnswer(item);
+                        const storedSolution = getStoredSolution(item);
 
-                      return (
-                        <article
-                          key={item.id}
-                          className="relative flex min-w-0 flex-col overflow-hidden rounded-3xl border border-white/60 bg-white/70 p-4 shadow-sm backdrop-blur-md"
-                        >
-                          <div className="flex items-center justify-between gap-3">
-                            <div className="rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
-                              History
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={() => handleDelete(item.id)}
-                              className="flex h-8 w-8 items-center justify-center rounded-full text-red-500 transition hover:bg-red-50"
-                              aria-label="Delete history entry"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-
-                          <div className="mt-4 min-w-0 text-center">
-                            <div className="max-w-full overflow-x-auto overflow-y-hidden text-xl font-semibold text-slate-900">
-                              <BlockMath math={sanitizeLatex(questionText)} />
-                            </div>
-
-                            <div className="mt-3 max-w-full overflow-x-auto overflow-y-hidden text-base text-blue-500">
-                              {finalAnswer ? (
-                                <BlockMath math={sanitizeLatex(finalAnswer)} />
-                              ) : (
-                                <p className="text-sm text-slate-500">Solved with Math Vision</p>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="mt-5 flex min-w-0 flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
-                            <div className="inline-flex min-w-0 items-center gap-1.5 text-xs text-slate-400">
-                              <Clock3 className="h-3.5 w-3.5" />
-                              <span className="truncate">{formatSolvedAt(item.solvedAt)}</span>
-                            </div>
-
-                            <div className="flex min-w-0 items-center gap-2 self-stretch sm:self-auto">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  navigate(`/solve?expression=${encodeURIComponent(questionText)}`)
-                                }
-                                className="inline-flex h-10 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl border border-green-200 bg-white px-3.5 text-sm font-semibold text-green-700 transition hover:bg-green-50 sm:flex-none"
-                              >
-                                <RotateCcw className="h-4 w-4" />
-                                <span>Again</span>
-                              </button>
+                        return (
+                          <article
+                            key={item.id}
+                            className="relative flex min-w-0 flex-col overflow-hidden rounded-3xl border border-white/60 bg-white/70 p-3.5 shadow-sm backdrop-blur-md"
+                          >
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700">
+                                History
+                              </div>
 
                               <button
                                 type="button"
-                                onClick={() =>
-                                  navigate(`/solution?expression=${encodeURIComponent(questionText)}`, {
-                                    state: storedSolution
-                                      ? {
-                                          prefetchedSolution: storedSolution
-                                        }
-                                      : undefined
-                                  })
-                                }
-                                className="inline-flex h-10 min-w-0 flex-1 items-center justify-center rounded-xl bg-green-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-green-700 sm:flex-none"
+                                onClick={() => handleDelete(item.id)}
+                                className="flex h-8 w-8 items-center justify-center rounded-full text-red-500 transition hover:bg-red-50"
+                                aria-label="Delete history entry"
                               >
-                                <span>View</span>
+                                <Trash2 className="h-4 w-4" />
                               </button>
                             </div>
-                          </div>
-                        </article>
-                      );
-                    })}
+
+                            <div className="mt-3 min-w-0 text-center">
+                              <div className="max-w-full overflow-x-auto overflow-y-hidden text-xl font-semibold text-slate-900">
+                                <BlockMath math={sanitizeLatex(questionText)} />
+                              </div>
+
+                              <div className="mt-2 max-w-full overflow-x-auto overflow-y-hidden text-base text-blue-500">
+                                {finalAnswer ? (
+                                  <BlockMath math={sanitizeLatex(finalAnswer)} />
+                                ) : (
+                                  <p className="text-sm text-slate-500">Solved with Math Vision</p>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="mt-4 flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                              <div className="inline-flex min-w-0 items-center gap-1.5 text-xs text-slate-400">
+                                <Clock3 className="h-3.5 w-3.5" />
+                                <span className="truncate">{formatSolvedAt(item.solvedAt)}</span>
+                              </div>
+
+                              <div className="flex min-w-0 items-center gap-2 self-stretch sm:self-auto">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    navigate(`/solve?expression=${encodeURIComponent(questionText)}`)
+                                  }
+                                  className="inline-flex h-10 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl border border-green-200 bg-white px-3.5 text-sm font-semibold text-green-700 transition hover:bg-green-50 sm:flex-none"
+                                >
+                                  <RotateCcw className="h-4 w-4" />
+                                  <span>Again</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    navigate(`/solution?expression=${encodeURIComponent(questionText)}`, {
+                                      state: storedSolution
+                                        ? {
+                                            prefetchedSolution: storedSolution
+                                          }
+                                        : undefined
+                                    })
+                                  }
+                                  className="inline-flex h-10 min-w-0 flex-1 items-center justify-center rounded-xl bg-green-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-green-700 sm:flex-none"
+                                >
+                                  <span>View</span>
+                                </button>
+                              </div>
+                            </div>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ))}
+
+                {hasMoreHistory ? (
+                  <div className="flex justify-center pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setVisibleCount((current) => current + HISTORY_PAGE_SIZE)}
+                      className="inline-flex items-center gap-2 rounded-full border border-green-200 bg-white px-5 py-2.5 text-sm font-semibold text-green-700 shadow-sm transition hover:bg-green-50"
+                    >
+                      <span>Show more</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
                   </div>
-                </section>
-              ))
+                ) : null}
+              </>
             )}
           </section>
         </main>

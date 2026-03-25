@@ -110,6 +110,20 @@ const getPreviewExpression = (value) => {
   return DEFAULT_PREVIEW_EXPRESSION;
 };
 
+const getInlinePreviewMarkup = (value) => {
+  const math = getPreviewExpression(value);
+
+  try {
+    return katex.renderToString(math, {
+      displayMode: false,
+      throwOnError: false,
+      strict: "ignore"
+    });
+  } catch {
+    return "";
+  }
+};
+
 const isLikelyMathExpression = (value) => /[0-9xyz=+\-*/^()\\]/i.test(value);
 
 export const SolvePage = () => {
@@ -233,6 +247,7 @@ export const SolvePage = () => {
   const previewExpression = useMemo(() => {
     return getPreviewExpression(expression);
   }, [expression]);
+  const inlinePreviewMarkup = useMemo(() => getInlinePreviewMarkup(expression), [expression]);
 
   const cursorPosition = editIndex ?? selectionRange.start;
 
@@ -392,41 +407,17 @@ export const SolvePage = () => {
                     className="flex min-h-[24px] flex-1 items-center overflow-x-auto bg-transparent text-left text-sm leading-relaxed text-brand-ink"
                   >
                     {expression ? (
-                      <span className="inline-flex items-center whitespace-nowrap">
-                        {Array.from({ length: expression.length + 1 }).map((_, index) => (
-                          <span key={`editor-${index}`} className="flex items-center">
-                            {cursorPosition === index ? (
-                              <span
-                                aria-hidden="true"
-                                className="mx-[2px] h-6 w-[2px] rounded-full bg-green-700 shadow-[0_0_0_1px_rgba(255,255,255,0.55),0_0_10px_rgba(22,163,74,0.18)]"
-                              />
-                            ) : null}
-
-                            {index < expression.length ? (
-                              <span
-                                role="button"
-                                tabIndex={0}
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  setIsInputReady(true);
-                                  syncCharacterSelection(index);
-                                }}
-                                onKeyDown={(event) => {
-                                  if (event.key === "Enter" || event.key === " ") {
-                                    event.preventDefault();
-                                    setIsInputReady(true);
-                                    syncCharacterSelection(index);
-                                  }
-                                }}
-                                className={`px-[1px] ${
-                                  editIndex === index ? "text-red-500" : "text-brand-ink"
-                                }`}
-                              >
-                                {expression[index] === " " ? "\u00A0" : expression[index]}
-                              </span>
-                            ) : null}
-                          </span>
-                        ))}
+                      <span className="inline-flex min-w-0 items-center gap-2 whitespace-nowrap">
+                        <span
+                          className="inline-flex min-w-0 items-center overflow-x-auto text-base text-slate-900"
+                          dangerouslySetInnerHTML={{ __html: inlinePreviewMarkup }}
+                        />
+                        {isInputReady ? (
+                          <span
+                            aria-hidden="true"
+                            className="h-6 w-[2px] shrink-0 rounded-full bg-green-700 shadow-[0_0_0_1px_rgba(255,255,255,0.55),0_0_10px_rgba(22,163,74,0.18)]"
+                          />
+                        ) : null}
                       </span>
                     ) : (
                       <span className="text-slate-400">{searchPlaceholder}</span>

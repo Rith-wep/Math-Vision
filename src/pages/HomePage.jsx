@@ -141,7 +141,7 @@ export const HomePage = () => {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <h2 className="text-[1.05rem] font-semibold text-slate-900">{card.title}</h2>
+                          <h2 className="text-[1.05rem] font-semibold text-slate-800">{card.title}</h2>
                           <p className="mt-0.5 text-[13px] leading-relaxed text-slate-500">
                             {card.subtitle}
                           </p>
