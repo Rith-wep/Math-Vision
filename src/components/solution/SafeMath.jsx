@@ -22,6 +22,7 @@ export const SafeMath = memo(function SafeMath({
   const trimmed = useMemo(() => (math || "").trim(), [math]);
   const sanitized = useMemo(() => sanitizeLatex(trimmed), [trimmed]);
   const isMathCandidate = useMemo(() => isLikelyMathText(trimmed), [trimmed]);
+  const readableText = useMemo(() => latexToReadableText(trimmed) || trimmed, [trimmed]);
 
   if (!sanitized || !isMathCandidate) {
     return <TextFallback text={trimmed} className={fallbackClassName} />;
@@ -29,15 +30,19 @@ export const SafeMath = memo(function SafeMath({
 
   if (mode === "inline") {
     return (
-      <InlineMath
-        math={sanitized}
-        renderError={() => <TextFallback text={trimmed} className={fallbackClassName} />}
-      />
+      <span role="img" aria-label={readableText}>
+        <span className="sr-only">{readableText}</span>
+        <InlineMath
+          math={sanitized}
+          renderError={() => <TextFallback text={trimmed} className={fallbackClassName} />}
+        />
+      </span>
     );
   }
 
   return (
-    <div className={className}>
+    <div className={className} role="img" aria-label={readableText}>
+      <span className="sr-only">{readableText}</span>
       <BlockMath
         math={sanitized}
         renderError={() => <TextFallback text={trimmed} className={fallbackClassName} />}

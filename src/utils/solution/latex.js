@@ -103,7 +103,7 @@ const replaceBalancedFrac = (input) => {
     const numerator = input.slice(numeratorStart, numeratorEnd - 1);
     const denominator = input.slice(denominatorStart, denominatorEnd - 1);
 
-    output += `${latexToReadableText(numerator)}/${latexToReadableText(denominator)}`;
+    output += `${latexToReadableText(numerator)} over ${latexToReadableText(denominator)}`;
     index = denominatorEnd;
   }
 
@@ -126,45 +126,63 @@ export const latexToReadableText = (value = "") => {
     let readable = sanitizeLatex(value);
 
     readable = replaceBalancedFrac(readable);
-    readable = replaceBalancedCommand(readable, "sqrt", (inner) => `\u221A(${latexToReadableText(inner)})`);
+    readable = replaceBalancedCommand(
+      readable,
+      "sqrt",
+      (inner) => `square root of ${latexToReadableText(inner)}`
+    );
+    readable = replaceBalancedCommand(readable, "text", (inner) => latexToReadableText(inner));
+    readable = replaceBalancedCommand(readable, "mathrm", (inner) => latexToReadableText(inner));
+    readable = replaceBalancedCommand(readable, "operatorname", (inner) => latexToReadableText(inner));
 
     readable = readable
       .replace(/\\left|\\right/g, "")
-      .replace(/\\cdot/g, "\u00B7")
-      .replace(/\\times/g, "\u00D7")
-      .replace(/\\div/g, "\u00F7")
-      .replace(/\\pm/g, "\u00B1")
-      .replace(/\\mp/g, "\u2213")
-      .replace(/\\geq/g, "\u2265")
-      .replace(/\\leq/g, "\u2264")
-      .replace(/\\neq/g, "\u2260")
-      .replace(/\\infty/g, "\u221E")
-      .replace(/\\pi/g, "\u03C0")
-      .replace(/\\theta/g, "\u03B8")
-      .replace(/\\alpha/g, "\u03B1")
-      .replace(/\\beta/g, "\u03B2")
-      .replace(/\\gamma/g, "\u03B3")
-      .replace(/\\Delta/g, "\u0394")
-      .replace(/\\sum/g, "\u2211")
-      .replace(/\\int/g, "\u222B")
-      .replace(/\\to|\\rightarrow/g, "\u2192")
-      .replace(/\\leftarrow/g, "\u2190")
+      .replace(/\\cdot/g, " multiplied by ")
+      .replace(/\\times/g, " times ")
+      .replace(/\\div/g, " divided by ")
+      .replace(/\\pm/g, " plus or minus ")
+      .replace(/\\mp/g, " minus or plus ")
+      .replace(/\\geq/g, " greater than or equal to ")
+      .replace(/\\leq/g, " less than or equal to ")
+      .replace(/\\neq/g, " not equal to ")
+      .replace(/\\infty/g, " infinity ")
+      .replace(/\\pi/g, " pi ")
+      .replace(/\\theta/g, " theta ")
+      .replace(/\\alpha/g, " alpha ")
+      .replace(/\\beta/g, " beta ")
+      .replace(/\\gamma/g, " gamma ")
+      .replace(/\\Delta/g, " delta ")
+      .replace(/\\sum/g, " summation ")
+      .replace(/\\int/g, " integral ")
+      .replace(/\\to|\\rightarrow/g, " to ")
+      .replace(/\\leftarrow/g, " from ")
       .replace(/\\ln/g, "ln")
-      .replace(/\\log_/g, "log_")
+      .replace(/\\log_/g, "log subscript ")
       .replace(/\\sin/g, "sin")
       .replace(/\\cos/g, "cos")
       .replace(/\\tan/g, "tan")
       .replace(/\\cot/g, "cot")
       .replace(/\\sec/g, "sec")
       .replace(/\\csc/g, "csc")
-      .replace(/\^\{([^}]+)\}/g, "^($1)")
-      .replace(/_+\{([^}]+)\}/g, "_($1)")
+      .replace(/\^\{([^}]+)\}/g, " to the power of $1 ")
+      .replace(/\^([A-Za-z0-9])/g, (_, exponent) => {
+        if (exponent === "2") return " squared ";
+        if (exponent === "3") return " cubed ";
+        return ` to the power of ${exponent} `;
+      })
+      .replace(/_+\{([^}]+)\}/g, " subscript $1 ")
+      .replace(/_([A-Za-z0-9])/g, " subscript $1 ")
       .replace(/\\,/g, " ")
       .replace(/\\!/g, "")
       .replace(/\\[a-zA-Z]+/g, "")
       .replace(/[{}]/g, "")
+      .replace(/[()[\]]/g, " ")
       .replace(/\s+/g, " ")
-      .replace(/\s*([=+\-*/])\s*/g, " $1 ")
+      .replace(/\s*=\s*/g, " equals ")
+      .replace(/\s*\+\s*/g, " plus ")
+      .replace(/\s*-\s*/g, " minus ")
+      .replace(/\s*\*\s*/g, " times ")
+      .replace(/\s*\/\s*/g, " over ")
       .trim();
 
     return readable.includes("\\") ? fallbackPlainText(value) : readable;

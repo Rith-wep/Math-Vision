@@ -7,6 +7,31 @@ import { toKhmerErrorMessage } from "../utils/errorMessages.js";
 
 const MIN_CROP_WIDTH = 140;
 const MIN_CROP_HEIGHT = 110;
+const OCR_CROP_PADDING_RATIO = 0.06;
+const OCR_CROP_PADDING_MIN = 12;
+
+const expandCropSourceRect = ({
+  sourceX,
+  sourceY,
+  sourceWidth,
+  sourceHeight,
+  maxWidth,
+  maxHeight
+}) => {
+  const paddingX = Math.max(OCR_CROP_PADDING_MIN, Math.round(sourceWidth * OCR_CROP_PADDING_RATIO));
+  const paddingY = Math.max(OCR_CROP_PADDING_MIN, Math.round(sourceHeight * OCR_CROP_PADDING_RATIO));
+  const nextSourceX = Math.max(0, sourceX - paddingX);
+  const nextSourceY = Math.max(0, sourceY - paddingY);
+  const right = Math.min(maxWidth, sourceX + sourceWidth + paddingX);
+  const bottom = Math.min(maxHeight, sourceY + sourceHeight + paddingY);
+
+  return {
+    sourceX: nextSourceX,
+    sourceY: nextSourceY,
+    sourceWidth: Math.max(1, right - nextSourceX),
+    sourceHeight: Math.max(1, bottom - nextSourceY)
+  };
+};
 
 const playSuccessFeedback = () => {
   if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
@@ -456,9 +481,17 @@ export const UploadPhoto = ({ open, onClose, onScanComplete }) => {
     const maxSourceHeight = Math.max(1, video.videoHeight - sourceY);
     const sourceWidth = Math.min(maxSourceWidth, Math.max(1, Math.round(cropBox.width * scaleX)));
     const sourceHeight = Math.min(maxSourceHeight, Math.max(1, Math.round(cropBox.height * scaleY)));
+    const expandedSourceRect = expandCropSourceRect({
+      sourceX,
+      sourceY,
+      sourceWidth,
+      sourceHeight,
+      maxWidth: video.videoWidth,
+      maxHeight: video.videoHeight
+    });
 
-    canvas.width = sourceWidth;
-    canvas.height = sourceHeight;
+    canvas.width = expandedSourceRect.sourceWidth;
+    canvas.height = expandedSourceRect.sourceHeight;
 
     const context = canvas.getContext("2d");
 
@@ -472,14 +505,14 @@ export const UploadPhoto = ({ open, onClose, onScanComplete }) => {
 
     context.drawImage(
       video,
-      sourceX,
-      sourceY,
-      sourceWidth,
-      sourceHeight,
+      expandedSourceRect.sourceX,
+      expandedSourceRect.sourceY,
+      expandedSourceRect.sourceWidth,
+      expandedSourceRect.sourceHeight,
       0,
       0,
-      sourceWidth,
-      sourceHeight
+      expandedSourceRect.sourceWidth,
+      expandedSourceRect.sourceHeight
     );
 
     const capturedFile = await new Promise((resolve) => {
@@ -529,9 +562,17 @@ export const UploadPhoto = ({ open, onClose, onScanComplete }) => {
     const maxSourceHeight = Math.max(1, image.naturalHeight - sourceY);
     const sourceWidth = Math.min(maxSourceWidth, Math.max(1, Math.round(cropBox.width * scaleX)));
     const sourceHeight = Math.min(maxSourceHeight, Math.max(1, Math.round(cropBox.height * scaleY)));
+    const expandedSourceRect = expandCropSourceRect({
+      sourceX,
+      sourceY,
+      sourceWidth,
+      sourceHeight,
+      maxWidth: image.naturalWidth,
+      maxHeight: image.naturalHeight
+    });
 
-    canvas.width = sourceWidth;
-    canvas.height = sourceHeight;
+    canvas.width = expandedSourceRect.sourceWidth;
+    canvas.height = expandedSourceRect.sourceHeight;
 
     const context = canvas.getContext("2d");
 
@@ -541,14 +582,14 @@ export const UploadPhoto = ({ open, onClose, onScanComplete }) => {
 
     context.drawImage(
       image,
-      sourceX,
-      sourceY,
-      sourceWidth,
-      sourceHeight,
+      expandedSourceRect.sourceX,
+      expandedSourceRect.sourceY,
+      expandedSourceRect.sourceWidth,
+      expandedSourceRect.sourceHeight,
       0,
       0,
-      sourceWidth,
-      sourceHeight
+      expandedSourceRect.sourceWidth,
+      expandedSourceRect.sourceHeight
     );
 
     const exportMimeType =
