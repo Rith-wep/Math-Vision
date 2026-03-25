@@ -131,6 +131,28 @@ const getCoveredMediaRect = (containerWidth, containerHeight, mediaWidth, mediaH
   };
 };
 
+const getContainedMediaRect = (containerWidth, containerHeight, mediaWidth, mediaHeight) => {
+  if (!containerWidth || !containerHeight || !mediaWidth || !mediaHeight) {
+    return {
+      width: containerWidth,
+      height: containerHeight,
+      offsetX: 0,
+      offsetY: 0
+    };
+  }
+
+  const scale = Math.min(containerWidth / mediaWidth, containerHeight / mediaHeight);
+  const width = mediaWidth * scale;
+  const height = mediaHeight * scale;
+
+  return {
+    width,
+    height,
+    offsetX: (containerWidth - width) / 2,
+    offsetY: (containerHeight - height) / 2
+  };
+};
+
 const loadImageFromSource = (src) =>
   new Promise((resolve, reject) => {
     const image = new Image();
@@ -546,16 +568,16 @@ export const UploadPhoto = ({ open, onClose, onScanComplete }) => {
     const image = imageRef.current;
     const canvas = canvasRef.current;
     const frameRect = frameRef.current.getBoundingClientRect();
-    const coveredImageRect = getCoveredMediaRect(
+    const containedImageRect = getContainedMediaRect(
       frameRect.width,
       frameRect.height,
       image.naturalWidth,
       image.naturalHeight
     );
-    const scaleX = image.naturalWidth / coveredImageRect.width;
-    const scaleY = image.naturalHeight / coveredImageRect.height;
-    const cropLeft = cropBox.x - coveredImageRect.offsetX;
-    const cropTop = cropBox.y - coveredImageRect.offsetY;
+    const scaleX = image.naturalWidth / containedImageRect.width;
+    const scaleY = image.naturalHeight / containedImageRect.height;
+    const cropLeft = cropBox.x - containedImageRect.offsetX;
+    const cropTop = cropBox.y - containedImageRect.offsetY;
     const sourceX = Math.max(0, Math.round(cropLeft * scaleX));
     const sourceY = Math.max(0, Math.round(cropTop * scaleY));
     const maxSourceWidth = Math.max(1, image.naturalWidth - sourceX);
