@@ -1,11 +1,17 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { BlockMath, InlineMath } from "react-katex";
 
-import { sanitizeLatex } from "../../utils/solution/latex.js";
+import {
+  isLikelyMathText,
+  latexToReadableText,
+  sanitizeLatex
+} from "../../utils/solution/latex.js";
 
-const TextFallback = ({ text, className = "" }) => (
-  <span className={className}>{sanitizeLatex(text) || text}</span>
-);
+const TextFallback = memo(function TextFallback({ text, className = "" }) {
+  const clean = useMemo(() => latexToReadableText(text) || text, [text]);
+
+  return <span className={className}>{clean}</span>;
+});
 
 export const SafeMath = memo(function SafeMath({
   math,
@@ -13,17 +19,19 @@ export const SafeMath = memo(function SafeMath({
   fallbackClassName = "",
   className = ""
 }) {
-  const sanitizedMath = sanitizeLatex(math);
+  const trimmed = useMemo(() => (math || "").trim(), [math]);
+  const sanitized = useMemo(() => sanitizeLatex(trimmed), [trimmed]);
+  const isMathCandidate = useMemo(() => isLikelyMathText(trimmed), [trimmed]);
 
-  if (!sanitizedMath) {
-    return <TextFallback text={math} className={fallbackClassName} />;
+  if (!sanitized || !isMathCandidate) {
+    return <TextFallback text={trimmed} className={fallbackClassName} />;
   }
 
   if (mode === "inline") {
     return (
       <InlineMath
-        math={sanitizedMath}
-        renderError={() => <TextFallback text={math} className={fallbackClassName} />}
+        math={sanitized}
+        renderError={() => <TextFallback text={trimmed} className={fallbackClassName} />}
       />
     );
   }
@@ -31,8 +39,8 @@ export const SafeMath = memo(function SafeMath({
   return (
     <div className={className}>
       <BlockMath
-        math={sanitizedMath}
-        renderError={() => <TextFallback text={math} className={fallbackClassName} />}
+        math={sanitized}
+        renderError={() => <TextFallback text={trimmed} className={fallbackClassName} />}
       />
     </div>
   );

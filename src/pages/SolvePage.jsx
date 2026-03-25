@@ -28,6 +28,36 @@ const featureBadges = [
 ];
 
 const DEFAULT_PREVIEW_EXPRESSION = "x^2 + 5x + 6 = 0";
+const PLACEHOLDER_SYMBOL = "○";
+const COMMAND_DISPLAY_MAP = {
+  "\\times": "×",
+  "\\div": "÷",
+  "\\pi": "π",
+  "\\theta": "θ",
+  "\\Delta": "Δ",
+  "\\partial": "∂",
+  "\\neq": "≠",
+  "\\to": "→",
+  "\\infty": "∞",
+  "\\sum": "∑",
+  "\\prod": "∏",
+  "\\sqrt": "√",
+  "\\log": "log",
+  "\\ln": "ln",
+  "\\sin": "sin",
+  "\\cos": "cos",
+  "\\tan": "tan",
+  "\\cot": "cot",
+  "\\sec": "sec",
+  "\\csc": "csc",
+  "\\sinh": "sinh",
+  "\\cosh": "cosh",
+  "\\tanh": "tanh",
+  "\\coth": "coth",
+  "\\exp": "exp",
+  "\\lim": "lim",
+  "\\frac": "/"
+};
 
 const sanitizeLatex = (value) => {
   if (!value) {
@@ -75,48 +105,82 @@ const makePreviewLatexSafe = (value) => {
   return safeLatex;
 };
 
+const toRenderableExpression = (value) => value.replaceAll(PLACEHOLDER_SYMBOL, "\\circ");
+
 const canRenderLatex = (value) => {
   if (!value) {
     return false;
   }
 
   try {
-    katex.renderToString(value, { displayMode: true, throwOnError: true });
+    katex.renderToString(toRenderableExpression(value), { displayMode: true, throwOnError: true });
     return true;
   } catch {
     return false;
   }
 };
 
-const getPreviewExpression = (value) => {
-  const safeLatex = makePreviewLatexSafe(value);
+const stripIncompleteLatexTail = (value) => {
+  let nextValue = value;
+  let previousValue = "";
 
-  if (!safeLatex) {
-    return DEFAULT_PREVIEW_EXPRESSION;
+  while (nextValue !== previousValue) {
+    previousValue = nextValue;
+    nextValue = nextValue
+      .replace(/\\[a-zA-Z]*$/, "")
+      .replace(/(?:\^|_)\{\}$/, "")
+      .replace(/\{\}$/, "")
+      .trim();
   }
 
-  if (canRenderLatex(safeLatex)) {
-    return safeLatex;
+  return nextValue;
+};
+
+const getBestRenderableLatex = (value) => {
+  const initialCandidate = makePreviewLatexSafe(stripIncompleteLatexTail(value));
+
+  if (!initialCandidate) {
+    return "";
   }
 
-  for (let index = safeLatex.length - 1; index > 0; index -= 1) {
-    const fallbackCandidate = makePreviewLatexSafe(safeLatex.slice(0, index));
+  if (canRenderLatex(initialCandidate)) {
+    return initialCandidate;
+  }
 
-    if (canRenderLatex(fallbackCandidate)) {
+  for (let index = initialCandidate.length - 1; index > 0; index -= 1) {
+    const fallbackCandidate = makePreviewLatexSafe(
+      stripIncompleteLatexTail(initialCandidate.slice(0, index))
+    );
+
+    if (fallbackCandidate && canRenderLatex(fallbackCandidate)) {
       return fallbackCandidate;
     }
   }
 
-  return DEFAULT_PREVIEW_EXPRESSION;
+  return "";
+};
+
+const getPreviewExpression = (value) => {
+  const renderableLatex = getBestRenderableLatex(value);
+
+  if (!renderableLatex) {
+    return DEFAULT_PREVIEW_EXPRESSION;
+  }
+
+  return renderableLatex;
 };
 
 const getInlinePreviewMarkup = (value) => {
-  const math = getPreviewExpression(value);
+  const math = getBestRenderableLatex(value);
+
+  if (!math) {
+    return "";
+  }
 
   try {
-    return katex.renderToString(math, {
+    return katex.renderToString(toRenderableExpression(math), {
       displayMode: false,
-      throwOnError: false,
+      throwOnError: true,
       strict: "ignore"
     });
   } catch {
@@ -124,7 +188,162 @@ const getInlinePreviewMarkup = (value) => {
   }
 };
 
+const buildInputDisplayTokens = (value) => {
+  const readBraceGroup = (source, openBraceIndex) => {
+    if (source[openBraceIndex] !== "{") {
+      return null;
+    }
+
+    let depth = 0;
+
+    for (let index = openBraceIndex; index < source.length; index += 1) {
+      if (source[index] === "{") {
+        depth += 1;
+      } else if (source[index] === "}") {
+        depth -= 1;
+
+        if (depth === 0) {
+          return {
+            content: source.slice(openBraceIndex + 1, index),
+            end: index + 1
+          };
+        }
+      }
+    }
+
+    return null;
+  };
+
+  const normalizeInlineDisplay = (segment) =>
+    segment
+      .replaceAll(PLACEHOLDER_SYMBOL, "○")
+      .replace(/\\pi/g, "π")
+      .replace(/\\theta/g, "θ")
+      .replace(/\\Delta/g, "Δ")
+      .replace(/\\partial/g, "∂")
+      .replace(/\\neq/g, "≠")
+      .replace(/\\to/g, "→")
+      .replace(/\\infty/g, "∞")
+      .replace(/\\sum/g, "∑")
+      .replace(/\\prod/g, "∏")
+      .replace(/\\sqrt/g, "√")
+      .replace(/\\log/g, "log")
+      .replace(/\\ln/g, "ln")
+      .replace(/\\sin/g, "sin")
+      .replace(/\\cos/g, "cos")
+      .replace(/\\tan/g, "tan")
+      .replace(/\\cot/g, "cot")
+      .replace(/\\sec/g, "sec")
+      .replace(/\\csc/g, "csc")
+      .replace(/\\sinh/g, "sinh")
+      .replace(/\\cosh/g, "cosh")
+      .replace(/\\tanh/g, "tanh")
+      .replace(/\\coth/g, "coth")
+      .replace(/\\exp/g, "exp")
+      .replace(/[{}]/g, "");
+
+  const tokens = [];
+  let index = 0;
+
+  while (index < value.length) {
+    if (value.startsWith("\\frac", index)) {
+      const numeratorGroup = readBraceGroup(value, index + 5);
+      const denominatorGroup = numeratorGroup ? readBraceGroup(value, numeratorGroup.end) : null;
+
+      if (numeratorGroup && denominatorGroup) {
+        tokens.push({
+          start: index,
+          end: denominatorGroup.end,
+          display: `${normalizeInlineDisplay(numeratorGroup.content)}/${normalizeInlineDisplay(denominatorGroup.content)}`
+        });
+        index = denominatorGroup.end;
+        continue;
+      }
+    }
+
+    if (value.startsWith("\\operatorname{", index)) {
+      const endIndex = value.indexOf("}", index + "\\operatorname{".length);
+
+      if (endIndex > index) {
+        tokens.push({
+          start: index,
+          end: endIndex + 1,
+          display: value.slice(index + "\\operatorname{".length, endIndex)
+        });
+        index = endIndex + 1;
+        continue;
+      }
+    }
+
+    if (value[index] === "\\") {
+      const commandMatch = value.slice(index).match(/^\\[a-zA-Z]+/);
+
+      if (commandMatch) {
+        const rawCommand = commandMatch[0];
+        tokens.push({
+          start: index,
+          end: index + rawCommand.length,
+          display: COMMAND_DISPLAY_MAP[rawCommand] || rawCommand.replace("\\", "")
+        });
+        index += rawCommand.length;
+        continue;
+      }
+    }
+
+    const character = value[index];
+
+    if (character === "{" || character === "}") {
+      index += 1;
+      continue;
+    }
+
+    tokens.push({
+      start: index,
+      end: index + 1,
+      display: character === PLACEHOLDER_SYMBOL ? "○" : character
+    });
+    index += 1;
+  }
+
+  return tokens;
+};
+
+const getCursorBoundaries = (tokens, rawLength) => {
+  const boundaries = new Set([0, rawLength]);
+
+  tokens.forEach((token) => {
+    boundaries.add(token.start);
+    boundaries.add(token.end);
+  });
+
+  return [...boundaries].sort((left, right) => left - right);
+};
+
+const getPreviousBoundary = (boundaries, position) => {
+  for (let index = boundaries.length - 1; index >= 0; index -= 1) {
+    if (boundaries[index] < position) {
+      return boundaries[index];
+    }
+  }
+
+  return 0;
+};
+
+const getNextBoundary = (boundaries, position, fallback) => {
+  for (let index = 0; index < boundaries.length; index += 1) {
+    if (boundaries[index] > position) {
+      return boundaries[index];
+    }
+  }
+
+  return fallback;
+};
+
 const isLikelyMathExpression = (value) => /[0-9xyz=+\-*/^()\\]/i.test(value);
+const hasInputPlaceholders = (value) => value.includes(PLACEHOLDER_SYMBOL);
+
+const findNextPlaceholder = (value, fromIndex = 0) => value.indexOf(PLACEHOLDER_SYMBOL, fromIndex);
+const findPreviousPlaceholder = (value, fromIndex) => value.lastIndexOf(PLACEHOLDER_SYMBOL, fromIndex);
 
 export const SolvePage = () => {
   const navigate = useNavigate();
@@ -248,29 +467,47 @@ export const SolvePage = () => {
     return getPreviewExpression(expression);
   }, [expression]);
   const inlinePreviewMarkup = useMemo(() => getInlinePreviewMarkup(expression), [expression]);
+  const inputDisplayTokens = useMemo(() => buildInputDisplayTokens(expression), [expression]);
+  const cursorBoundaries = useMemo(
+    () => getCursorBoundaries(inputDisplayTokens, expression.length),
+    [expression.length, inputDisplayTokens]
+  );
 
   const cursorPosition = editIndex ?? selectionRange.start;
 
   const handleKeyboardPress = (key) => {
     const token = key.value || key.label;
     const nextCaretPosition = typeof key.caretOffset === "number" ? key.caretOffset : token.length;
-    const isSingleCharacterToken = token.length === 1;
+    const placeholderOffsets = key.placeholderOffsets || [];
 
     let nextExpression;
     let nextPosition;
+    let nextEditIndex = null;
 
-    if (editIndex !== null && editIndex < expression.length && isSingleCharacterToken) {
+    if (editIndex !== null && editIndex < expression.length && expression[editIndex] === PLACEHOLDER_SYMBOL) {
       nextExpression = expression.slice(0, editIndex) + token + expression.slice(editIndex + 1);
-      nextPosition = editIndex + 1;
-      setEditIndex(null);
+      nextPosition = editIndex + token.length;
+      const upcomingPlaceholder = findNextPlaceholder(nextExpression, editIndex + token.length - 1);
+      nextEditIndex = upcomingPlaceholder >= 0 ? upcomingPlaceholder : null;
     } else {
       const { start, end } = selectionRange;
       nextExpression = expression.slice(0, start) + token + expression.slice(end);
       nextPosition = start + nextCaretPosition;
-      setEditIndex(null);
+
+      if (placeholderOffsets.length > 0) {
+        nextEditIndex = start + placeholderOffsets[0];
+        nextPosition = nextEditIndex;
+      }
     }
 
     updateExpression(nextExpression, nextPosition, nextPosition);
+
+    if (nextEditIndex !== null) {
+      setEditIndex(nextEditIndex);
+      syncSelectionRange(nextEditIndex, nextEditIndex);
+    } else {
+      setEditIndex(null);
+    }
   };
 
   const handleDelete = () => {
@@ -301,18 +538,37 @@ export const SolvePage = () => {
 
   const handleMoveLeft = () => {
     const currentPosition = editIndex ?? selectionRange.start;
-    const nextPosition = Math.max(0, currentPosition - 1);
-    syncCharacterSelection(nextPosition);
+    const previousPlaceholder = findPreviousPlaceholder(expression, currentPosition - 1);
+
+    if (previousPlaceholder >= 0) {
+      syncCharacterSelection(previousPlaceholder);
+      return;
+    }
+
+    const nextPosition = getPreviousBoundary(cursorBoundaries, currentPosition);
+    setEditIndex(null);
+    syncSelectionRange(nextPosition, nextPosition);
   };
 
   const handleMoveRight = () => {
     const currentPosition = editIndex ?? selectionRange.start;
-    const nextPosition = Math.min(expression.length, currentPosition + 1);
-    syncCharacterSelection(nextPosition);
+    const nextPlaceholder = findNextPlaceholder(
+      expression,
+      editIndex !== null ? currentPosition + 1 : currentPosition
+    );
+
+    if (nextPlaceholder >= 0) {
+      syncCharacterSelection(nextPlaceholder);
+      return;
+    }
+
+    const nextPosition = getNextBoundary(cursorBoundaries, currentPosition, expression.length);
+    setEditIndex(null);
+    syncSelectionRange(nextPosition, nextPosition);
   };
 
   const handleSolve = () => {
-    if (!expression.trim() || !isLikelyMathExpression(expression)) {
+    if (!expression.trim() || !isLikelyMathExpression(expression) || hasInputPlaceholders(expression)) {
       setErrorMessage(toKhmerErrorMessage("The math expression is not valid. Please check it again."));
       return;
     }
@@ -401,6 +657,13 @@ export const SolvePage = () => {
                     type="button"
                     onClick={() => {
                       setIsInputReady(true);
+                      const firstPlaceholder = findNextPlaceholder(expression);
+
+                      if (firstPlaceholder >= 0) {
+                        syncCharacterSelection(firstPlaceholder);
+                        return;
+                      }
+
                       setEditIndex(null);
                       syncSelectionRange(expression.length, expression.length);
                     }}
@@ -408,16 +671,41 @@ export const SolvePage = () => {
                   >
                     {expression ? (
                       <span className="inline-flex min-w-0 items-center gap-2 whitespace-nowrap">
-                        <span
-                          className="inline-flex min-w-0 items-center overflow-x-auto text-base text-slate-900"
-                          dangerouslySetInnerHTML={{ __html: inlinePreviewMarkup }}
-                        />
-                        {isInputReady ? (
-                          <span
-                            aria-hidden="true"
-                            className="h-6 w-[2px] shrink-0 rounded-full bg-green-700 shadow-[0_0_0_1px_rgba(255,255,255,0.55),0_0_10px_rgba(22,163,74,0.18)]"
-                          />
-                        ) : null}
+                        <span className="inline-flex min-w-0 items-center overflow-x-auto text-base text-slate-900">
+                          {inputDisplayTokens.length === 0 && inlinePreviewMarkup ? (
+                            <span dangerouslySetInnerHTML={{ __html: inlinePreviewMarkup }} />
+                          ) : (
+                            <>
+                              {cursorPosition === 0 ? (
+                                <span
+                                  aria-hidden="true"
+                                  className="mx-[2px] h-6 w-[2px] shrink-0 rounded-full bg-green-700 shadow-[0_0_0_1px_rgba(255,255,255,0.55),0_0_10px_rgba(22,163,74,0.18)]"
+                                />
+                              ) : null}
+
+                              {inputDisplayTokens.map((token) => (
+                                <span key={`${token.start}-${token.end}`} className="inline-flex items-center">
+                                  <span
+                                    className={`px-[1px] ${
+                                      editIndex === token.start && expression[token.start] === PLACEHOLDER_SYMBOL
+                                        ? "rounded-full bg-green-100 text-green-700"
+                                        : "text-slate-900"
+                                    }`}
+                                  >
+                                    {token.display}
+                                  </span>
+
+                                  {cursorPosition === token.end ? (
+                                    <span
+                                      aria-hidden="true"
+                                      className="mx-[2px] h-6 w-[2px] shrink-0 rounded-full bg-green-700 shadow-[0_0_0_1px_rgba(255,255,255,0.55),0_0_10px_rgba(22,163,74,0.18)]"
+                                    />
+                                  ) : null}
+                                </span>
+                              ))}
+                            </>
+                          )}
+                        </span>
                       </span>
                     ) : (
                       <span className="text-slate-400">{searchPlaceholder}</span>

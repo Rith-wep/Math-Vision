@@ -61,6 +61,17 @@ export const authService = {
     return response.data;
   },
 
+  async updateProfile(payload, token) {
+    const response = await axios.patch(`${backendBaseUrl}/auth/profile`, payload, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      }
+    });
+
+    return response.data;
+  },
+
   async logout() {
     const response = await axios.get(`${backendBaseUrl}/auth/logout`, {
       withCredentials: true

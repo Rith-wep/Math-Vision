@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, Info, LogIn, LogOut } from "lucide-react";
+import { ChevronDown, CircleUser, Info, LogIn, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { ButtonSpinner } from "./ButtonSpinner.jsx";
@@ -152,6 +152,20 @@ export const ScanHeader = () => {
                   transition={{ duration: 0.18, ease: "easeOut" }}
                   className="absolute right-0 z-[90] mt-3 w-44 overflow-hidden rounded-2xl border border-white/70 border-t-2 border-t-green-500 bg-white/95 p-2 shadow-[0_20px_44px_rgba(15,23,42,0.12)] backdrop-blur-md"
                 >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      navigate("/profile");
+                    }}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                  >
+                    <CircleUser className="h-4 w-4 text-slate-400" />
+                    <span>Profile</span>
+                  </button>
+
+                  <div className="my-1 border-b border-slate-100" />
+
                   <button
                     type="button"
                     onClick={() => {

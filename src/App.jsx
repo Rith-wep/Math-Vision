@@ -11,6 +11,7 @@ import { AboutUsPage } from "./pages/AboutUsPage.jsx";
 import { HomePage } from "./pages/HomePage.jsx";
 import { HistoryPage } from "./pages/HistoryPage.jsx";
 import { LoginPage } from "./pages/LoginPage.jsx";
+import { ProfilePage } from "./pages/ProfilePage.jsx";
 import { QcmPage } from "./pages/QcmPage.jsx";
 import { SolvePage } from "./pages/SolvePage.jsx";
 import { SolutionPage } from "./pages/SolutionPage.jsx";
@@ -45,11 +46,11 @@ const splashHighlights = [
 
 const SplashLogo = () => {
   return (
-    <div className="relative flex h-24 w-24 items-center justify-center rounded-[2rem] bg-emerald-50">
+    <div className="relative flex h-20 w-20 items-center justify-center rounded-[1.75rem] bg-emerald-50 sm:h-24 sm:w-24 sm:rounded-[2rem]">
       <div className="absolute inset-0 rounded-[2rem] bg-[radial-gradient(circle_at_top,_rgba(74,222,128,0.26),_transparent_70%)]" />
       <svg
         viewBox="0 0 96 96"
-        className="relative h-16 w-16 drop-shadow-[0_10px_14px_rgba(34,197,94,0.18)]"
+        className="relative h-14 w-14 drop-shadow-[0_10px_14px_rgba(34,197,94,0.18)] sm:h-16 sm:w-16"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
@@ -114,7 +115,7 @@ const App = () => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.45, ease: "easeOut" }}
-        className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-50 px-4 py-6 sm:px-6"
+        className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-50 px-3 py-4 sm:px-6 sm:py-6"
       >
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(148,163,184,0.045)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.045)_1px,transparent_1px)] bg-[size:48px_48px] opacity-50 sm:bg-[size:72px_72px]" />
         <div className="absolute left-1/2 top-[-8rem] h-[18rem] w-[18rem] -translate-x-1/2 rounded-full bg-emerald-100/80 blur-3xl sm:top-[-10rem] sm:h-[24rem] sm:w-[24rem]" />
@@ -139,18 +140,18 @@ const App = () => {
             initial={{ opacity: 0, y: 18, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="relative overflow-hidden rounded-[1.75rem] border border-slate-100 bg-white px-4 py-8 shadow-sm sm:rounded-[2rem] sm:px-6 sm:py-10 md:px-14 md:py-16"
+            className="relative overflow-hidden rounded-[1.5rem] border border-slate-100 bg-white px-4 py-6 shadow-sm sm:rounded-[2rem] sm:px-6 sm:py-10 md:px-14 md:py-16"
           >
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-200/70 to-transparent" />
-            <div className="absolute left-1/2 top-0 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-50/80 blur-3xl sm:h-32 sm:w-32" />
+            <div className="absolute left-1/2 top-0 h-20 w-20 -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-50/80 blur-3xl sm:h-32 sm:w-32" />
 
-            <div className="space-y-6 sm:space-y-8 md:space-y-10">
-              <div className="mx-auto flex w-fit max-w-full items-center gap-2 rounded-full border border-emerald-200 bg-white/95 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.22em] text-emerald-600 shadow-[0_8px_24px_rgba(16,185,129,0.08)] sm:px-4 sm:text-[11px] sm:tracking-[0.28em]">
+            <div className="space-y-4 sm:space-y-8 md:space-y-10">
+              <div className="mx-auto flex w-fit max-w-full items-center gap-2 rounded-full border border-emerald-200 bg-white/95 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.18em] text-emerald-600 shadow-[0_8px_24px_rgba(16,185,129,0.08)] sm:px-4 sm:text-[11px] sm:tracking-[0.28em]">
                 <span className="h-2 w-2 rounded-full bg-emerald-500" />
                 <span className="truncate">AI Learning Assistant</span>
               </div>
 
-              <div className="relative mx-auto flex h-20 w-20 items-center justify-center sm:h-24 sm:w-24">
+              <div className="relative mx-auto flex h-16 w-16 items-center justify-center sm:h-24 sm:w-24">
                 <motion.div
                   className="absolute inset-0 rounded-[2rem] border border-emerald-200/80"
                   animate={{ rotate: 360 }}
@@ -166,46 +167,46 @@ const App = () => {
                 </motion.div>
               </div>
 
-              <div className="space-y-4">
-                <div className="space-y-2 sm:space-y-3">
-                  <p className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl md:text-5xl">
+              <div className="space-y-3">
+                <div className="space-y-1.5 sm:space-y-3">
+                  <p className="text-[2rem] font-extrabold tracking-tight text-slate-900 sm:text-4xl md:text-5xl">
                     Math-<span className="text-[#22c55e]">Vision</span>
                   </p>
-                  <p className="mx-auto max-w-lg text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400 sm:text-xs sm:tracking-[0.32em]">
+                  <p className="mx-auto max-w-lg text-[9px] font-medium uppercase tracking-[0.18em] text-slate-400 sm:text-xs sm:tracking-[0.32em]">
                     Intelligent problem solving for modern learners
                   </p>
                 </div>
 
-                <p className="khmer-font mx-auto max-w-xl text-sm leading-7 text-slate-700 sm:text-base sm:leading-8 md:text-xl md:leading-loose">
+                <p className="khmer-font mx-auto max-w-xl text-[13px] leading-6 text-slate-700 sm:text-base sm:leading-8 md:text-xl md:leading-loose">
                   ដោះស្រាយវិញ្ញាសា ដោយបញ្ញាសិប្បនិម្មិត
                 </p>
               </div>
 
-              <div className="mx-auto mt-2 grid max-w-2xl grid-cols-1 gap-3 text-left sm:mt-4 sm:grid-cols-3 sm:gap-4">
+              <div className="mx-auto mt-1 grid max-w-2xl grid-cols-1 gap-2.5 text-left sm:mt-4 sm:grid-cols-3 sm:gap-4">
                 {splashHighlights.map(({ label, value, icon: Icon, iconBoxClassName }, index) => (
                   <motion.div
                     key={label}
                     initial={{ opacity: 0, y: 18 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.45, delay: 0.2 + index * 0.12, ease: "easeOut" }}
-                    className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-white px-3 py-3 shadow-sm sm:gap-4 sm:px-4 sm:py-4"
+                    className="flex items-center gap-3 rounded-[1.25rem] border border-slate-100 bg-white px-3 py-2.5 shadow-sm sm:gap-4 sm:rounded-2xl sm:px-4 sm:py-4"
                   >
                     <div
-                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl font-bold sm:h-12 sm:w-12 ${iconBoxClassName}`}
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xl font-bold sm:h-12 sm:w-12 ${iconBoxClassName}`}
                     >
                       <Icon size={20} strokeWidth={2.2} className="sm:h-[22px] sm:w-[22px]" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
                         {label}
                       </p>
-                      <p className="mt-1 text-sm font-semibold text-slate-800 sm:text-base">{value}</p>
+                      <p className="mt-0.5 text-sm font-semibold text-slate-800 sm:mt-1 sm:text-base">{value}</p>
                     </div>
                   </motion.div>
                 ))}
               </div>
 
-              <div className="space-y-3 pt-1 sm:space-y-4">
+              <div className="space-y-2 pt-0.5 sm:space-y-4">
                 <div className="mx-auto h-1.5 w-full max-w-[14rem] overflow-hidden rounded-full bg-emerald-50 shadow-inner sm:max-w-[15rem] md:w-64 md:max-w-none">
                   <motion.div
                     className="h-full rounded-full bg-gradient-to-r from-emerald-300 via-emerald-500 to-teal-400"
@@ -214,7 +215,7 @@ const App = () => {
                     transition={{ duration: 1.2, ease: "easeInOut" }}
                   />
                 </div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-300 sm:text-xs sm:tracking-[0.3em]">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-300 sm:text-xs sm:tracking-[0.3em]">
                   Preparing your workspace
                 </p>
               </div>
@@ -235,6 +236,7 @@ const App = () => {
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/about-us" element={<AboutUsPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/qcm" element={<QcmPage />} />
           <Route path="/solve" element={<SolvePage />} />

@@ -91,6 +91,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateProfile = async (payload) => {
+    const response = await authService.updateProfile(payload, token);
+    persistAuth(response.token || token, response.user);
+    return response;
+  };
+
   const value = useMemo(
     () => ({
       user,
@@ -101,6 +107,7 @@ export const AuthProvider = ({ children }) => {
       loginWithPassword,
       registerWithPassword,
       completeGoogleAuth,
+      updateProfile,
       logout
     }),
     [isAuthLoading, token, user]

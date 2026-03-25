@@ -123,7 +123,7 @@ const optimizeImageFile = async (file) => {
   });
 
   const image = await loadImageFromSource(dataUrl);
-  const maxDimension = 1600;
+  const maxDimension = 2200;
   const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
   const targetWidth = Math.max(1, Math.round(image.width * scale));
   const targetHeight = Math.max(1, Math.round(image.height * scale));
@@ -142,7 +142,7 @@ const optimizeImageFile = async (file) => {
   const sourceMimeType = file.type && file.type.startsWith("image/") ? file.type : "image/jpeg";
   const exportMimeType = sourceMimeType === "image/png" ? "image/png" : "image/jpeg";
   const blob = await new Promise((resolve) => {
-    canvas.toBlob((nextBlob) => resolve(nextBlob), exportMimeType, 0.86);
+    canvas.toBlob((nextBlob) => resolve(nextBlob), exportMimeType, 0.94);
   });
 
   if (!blob) {
@@ -173,11 +173,13 @@ export const UploadPhoto = ({ open, onClose, onScanComplete }) => {
   const cameraInputRef = useRef(null);
   const galleryInputRef = useRef(null);
   const videoRef = useRef(null);
+  const imageRef = useRef(null);
   const canvasRef = useRef(null);
   const frameRef = useRef(null);
   const interactionRef = useRef(null);
 
   const [previewUrl, setPreviewUrl] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [cameraStream, setCameraStream] = useState(null);
@@ -208,6 +210,7 @@ export const UploadPhoto = ({ open, onClose, onScanComplete }) => {
     }
 
     setPreviewUrl("");
+    setSelectedFile(null);
   };
 
   const syncInitialCropBox = () => {
@@ -406,37 +409,17 @@ export const UploadPhoto = ({ open, onClose, onScanComplete }) => {
       return;
     }
 
+    setErrorMessage("");
+    stopCameraStream();
+
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
     }
 
     const localPreview = URL.createObjectURL(file);
+    setSelectedFile(file);
     setPreviewUrl(localPreview);
-    setErrorMessage("");
-    setIsProcessing(true);
-    stopCameraStream();
-
-    try {
-      const optimizedImage = await optimizeImageFile(file);
-
-      const result = await formulaService.solveFromImage({
-        imageBase64: optimizedImage.imageBase64,
-        mimeType: optimizedImage.mimeType
-      });
-
-      playSuccessFeedback();
-      clearPreview();
-      onScanComplete?.(result);
-      onClose?.();
-    } catch (error) {
-      setErrorMessage(
-        toKhmerErrorMessage(
-          error.response?.data?.message || error.message || "Unable to scan the image right now. Please try again."
-        )
-      );
-    } finally {
-      setIsProcessing(false);
-    }
+    window.requestAnimationFrame(syncInitialCropBox);
   };
 
   const handleCameraCapture = async () => {
@@ -522,6 +505,99 @@ export const UploadPhoto = ({ open, onClose, onScanComplete }) => {
     await handleFileSelected(capturedFile);
   };
 
+  const createCroppedFileFromPreview = async () => {
+    if (!imageRef.current || !canvasRef.current || !frameRef.current || !selectedFile) {
+      throw new Error("No image selected.");
+    }
+
+    const image = imageRef.current;
+    const canvas = canvasRef.current;
+    const frameRect = frameRef.current.getBoundingClientRect();
+    const coveredImageRect = getCoveredMediaRect(
+      frameRect.width,
+      frameRect.height,
+      image.naturalWidth,
+      image.naturalHeight
+    );
+    const scaleX = image.naturalWidth / coveredImageRect.width;
+    const scaleY = image.naturalHeight / coveredImageRect.height;
+    const cropLeft = cropBox.x - coveredImageRect.offsetX;
+    const cropTop = cropBox.y - coveredImageRect.offsetY;
+    const sourceX = Math.max(0, Math.round(cropLeft * scaleX));
+    const sourceY = Math.max(0, Math.round(cropTop * scaleY));
+    const maxSourceWidth = Math.max(1, image.naturalWidth - sourceX);
+    const maxSourceHeight = Math.max(1, image.naturalHeight - sourceY);
+    const sourceWidth = Math.min(maxSourceWidth, Math.max(1, Math.round(cropBox.width * scaleX)));
+    const sourceHeight = Math.min(maxSourceHeight, Math.max(1, Math.round(cropBox.height * scaleY)));
+
+    canvas.width = sourceWidth;
+    canvas.height = sourceHeight;
+
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      throw new Error("Unable to crop the selected image.");
+    }
+
+    context.drawImage(
+      image,
+      sourceX,
+      sourceY,
+      sourceWidth,
+      sourceHeight,
+      0,
+      0,
+      sourceWidth,
+      sourceHeight
+    );
+
+    const exportMimeType =
+      selectedFile.type && selectedFile.type.startsWith("image/") ? selectedFile.type : "image/jpeg";
+
+    const croppedBlob = await new Promise((resolve) => {
+      canvas.toBlob((blob) => resolve(blob), exportMimeType, 0.95);
+    });
+
+    if (!croppedBlob) {
+      throw new Error("Unable to crop the selected image.");
+    }
+
+    return new File([croppedBlob], selectedFile.name || `math-vision-crop-${Date.now()}.jpg`, {
+      type: exportMimeType
+    });
+  };
+
+  const handleCropAndSolve = async () => {
+    if (!selectedFile || isProcessing) {
+      return;
+    }
+
+    setErrorMessage("");
+    setIsProcessing(true);
+
+    try {
+      const croppedFile = await createCroppedFileFromPreview();
+      const optimizedImage = await optimizeImageFile(croppedFile);
+      const result = await formulaService.solveFromImage({
+        imageBase64: optimizedImage.imageBase64,
+        mimeType: optimizedImage.mimeType
+      });
+
+      playSuccessFeedback();
+      clearPreview();
+      onScanComplete?.(result);
+      onClose?.();
+    } catch (error) {
+      setErrorMessage(
+        toKhmerErrorMessage(
+          error.response?.data?.message || error.message || "Unable to scan the image right now. Please try again."
+        )
+      );
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const cropStyle = {
     left: `${cropBox.x}px`,
     top: `${cropBox.y}px`,
@@ -562,7 +638,15 @@ export const UploadPhoto = ({ open, onClose, onScanComplete }) => {
                 ref={frameRef}
                 className="relative overflow-hidden rounded-[1.25rem] bg-slate-950/5"
               >
-                <div className="aspect-[4/3] w-full overflow-hidden rounded-[1.25rem]">
+                <div
+                  className={`w-full overflow-hidden rounded-[1.25rem] ${
+                    isCameraActive
+                      ? "aspect-[4/3]"
+                      : previewUrl
+                        ? "flex min-h-[320px] max-h-[70vh] items-center justify-center bg-slate-100"
+                        : "aspect-[4/3]"
+                  }`}
+                >
                   {isCameraActive ? (
                     <video
                       ref={videoRef}
@@ -577,9 +661,13 @@ export const UploadPhoto = ({ open, onClose, onScanComplete }) => {
                     />
                   ) : previewUrl ? (
                     <img
+                      ref={imageRef}
                       src={previewUrl}
                       alt="Uploaded math problem preview"
-                      className="h-full w-full object-cover"
+                      onLoad={() => {
+                        window.requestAnimationFrame(syncInitialCropBox);
+                      }}
+                      className="max-h-[70vh] w-full bg-slate-50 object-contain"
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center bg-gradient-to-br from-green-50 to-white px-8 text-center text-sm text-slate-400">
@@ -597,7 +685,7 @@ export const UploadPhoto = ({ open, onClose, onScanComplete }) => {
                   }}
                 />
 
-                {isCameraActive && (
+                {(isCameraActive || previewUrl) && (
                   <div
                     className="absolute border-2 border-green-500/95 bg-transparent shadow-[0_0_0_9999px_rgba(15,23,42,0.32)] touch-none"
                     style={cropStyle}
@@ -676,12 +764,16 @@ export const UploadPhoto = ({ open, onClose, onScanComplete }) => {
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={handleCameraCapture}
-                  disabled={!isCameraActive || !isCameraReady || isProcessing || isStartingCamera}
+                  onClick={selectedFile ? handleCropAndSolve : handleCameraCapture}
+                  disabled={
+                    isProcessing ||
+                    isStartingCamera ||
+                    (!selectedFile && (!isCameraActive || !isCameraReady))
+                  }
                   className="flex items-center justify-center gap-2 rounded-2xl border border-[#22c55e] bg-[#22c55e] px-4 py-3 text-sm font-semibold text-white shadow-none transition-colors hover:border-[#16a34a] hover:bg-[#16a34a] disabled:cursor-not-allowed disabled:border-emerald-300 disabled:bg-emerald-300"
                 >
                   <Camera className="h-4 w-4" />
-                  <span>{isProcessing ? "Scanning..." : "Scan"}</span>
+                  <span>{isProcessing ? "Scanning..." : selectedFile ? "Crop & Solve" : "Scan"}</span>
                 </button>
 
                 <button

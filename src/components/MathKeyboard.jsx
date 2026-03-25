@@ -2,17 +2,28 @@ import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Delete, Sparkles } from "lucide-react";
 
+const PLACEHOLDER_SYMBOL = "○";
+
 const buildKey = (config) => {
   if (!config.template) {
     return config;
   }
 
   const caretOffset = config.template.indexOf("|");
+  const value = config.template.replace("|", "");
+  const placeholderOffsets = [...value].reduce((positions, character, index) => {
+    if (character === PLACEHOLDER_SYMBOL) {
+      positions.push(index);
+    }
+
+    return positions;
+  }, []);
 
   return {
     ...config,
-    value: config.template.replace("|", ""),
-    caretOffset: caretOffset >= 0 ? caretOffset : undefined
+    value,
+    caretOffset: caretOffset >= 0 ? caretOffset : undefined,
+    placeholderOffsets
   };
 };
 
@@ -44,8 +55,8 @@ const keyboardLayouts = {
     buildKey({ label: "9", value: "9", tone: "number" }),
     buildKey({ label: "\u00f7", value: "\\div ", tone: "operator", typography: "math", textClass: "text-[24px]" }),
 
-    buildKey({ label: "\u25a1/\u25a1", template: "\\frac{|}{}", tone: "function", typography: "math", textClass: "text-[15px]" }),
-    buildKey({ label: "\u221a", template: "\\sqrt{|}", tone: "function", typography: "math", textClass: "text-[28px]" }),
+    buildKey({ label: "\u25a1/\u25a1", template: `\\frac{|${PLACEHOLDER_SYMBOL}}{${PLACEHOLDER_SYMBOL}}`, tone: "function", typography: "math", textClass: "text-[15px]" }),
+    buildKey({ label: "\u221a", template: `\\sqrt{|${PLACEHOLDER_SYMBOL}}`, tone: "function", typography: "math", textClass: "text-[28px]" }),
     buildKey({ label: "4", value: "4", tone: "number" }),
     buildKey({ label: "5", value: "5", tone: "number" }),
     buildKey({ label: "6", value: "6", tone: "number" }),
@@ -68,27 +79,27 @@ const keyboardLayouts = {
   functions: [
     buildKey({ label: "|x|", template: "\\left| |\\right|", tone: "function", typography: "math" }),
     buildKey({ label: "f(x)", template: "f(|)", tone: "function", typography: "math" }),
-    buildKey({ label: "log\u2081\u2080", template: "\\log_{10}(|)", tone: "function", textClass: "text-[16px]" }),
-    buildKey({ label: "\u221a", template: "\\sqrt[|]{}", tone: "function", typography: "math", textClass: "text-[28px]" }),
+    buildKey({ label: "log\u2081\u2080", template: `\\log_{10}(|${PLACEHOLDER_SYMBOL})`, tone: "function", textClass: "text-[16px]" }),
+    buildKey({ label: "\u221a", template: `\\sqrt[|]{${PLACEHOLDER_SYMBOL}}`, tone: "function", typography: "math", textClass: "text-[28px]" }),
     buildKey({ label: "i", value: "i", tone: "function", typography: "math", textClass: "text-[24px] italic" }),
     buildKey({ label: "[ ]", template: "\\left[ |\\right]", tone: "function", typography: "math" }),
 
     buildKey({ label: "x\u2099", template: "x_{|}", tone: "function", typography: "math", textClass: "text-[20px]" }),
     buildKey({ label: "( )", template: "(|)", tone: "function", typography: "math" }),
-    buildKey({ label: "log\u2082", template: "\\log_{2}(|)", tone: "function", textClass: "text-[16px]" }),
+    buildKey({ label: "log\u2082", template: `\\log_{2}(|${PLACEHOLDER_SYMBOL})`, tone: "function", textClass: "text-[16px]" }),
     buildKey({ label: "P(x)", template: "P(|)", tone: "function", typography: "math" }),
     buildKey({ label: "z", value: "z", tone: "function", typography: "math", textClass: "text-[24px] italic" }),
     buildKey({ label: "!", value: "!", tone: "operator", typography: "math", textClass: "text-[24px]" }),
 
     buildKey({ label: "e", value: "e", tone: "function", typography: "math", textClass: "text-[24px] italic" }),
-    buildKey({ label: "f(x,y)", template: "f(|,)", tone: "function", typography: "math" }),
-    buildKey({ label: "log\u2090", template: "\\log_{|}()", tone: "function", textClass: "text-[16px]" }),
+    buildKey({ label: "f(x,y)", template: `f(|,${PLACEHOLDER_SYMBOL})`, tone: "function", typography: "math" }),
+    buildKey({ label: "log\u2090", template: `\\log_{|}(${PLACEHOLDER_SYMBOL})`, tone: "function", textClass: "text-[16px]" }),
     buildKey({ label: "C(x)", template: "C(|)", tone: "function", typography: "math" }),
     buildKey({ label: "z\u0304", value: "\\bar{z}", tone: "function", typography: "math", textClass: "text-[23px] italic" }),
     buildKey({ label: "{ }", template: "\\left\\{ |\\right\\}", tone: "function", typography: "math" }),
 
     buildKey({ label: "exp", template: "\\exp(|)", tone: "secondary" }),
-    buildKey({ label: "(a,b)", template: "(|,)", tone: "function", typography: "math" }),
+    buildKey({ label: "(a,b)", template: `(|,${PLACEHOLDER_SYMBOL})`, tone: "function", typography: "math" }),
     buildKey({ label: "ln", template: "\\ln(|)", tone: "function", textClass: "text-[19px]" }),
     buildKey({ label: "sign", template: "\\operatorname{sign}(|)", tone: "secondary", textClass: "text-[15px]" }),
     buildKey({ label: "\u2016 \u2016", template: "\\left\\| |\\right\\|", tone: "function", typography: "math" }),
@@ -96,48 +107,48 @@ const keyboardLayouts = {
   ],
   trig: [
     buildKey({ label: "RAD", value: "\\mathrm{rad}", tone: "secondary", badge: true }),
-    buildKey({ label: "sin", template: "\\sin(|)", tone: "function" }),
-    buildKey({ label: "cos", template: "\\cos(|)", tone: "function" }),
-    buildKey({ label: "tan", template: "\\tan(|)", tone: "function" }),
-    buildKey({ label: "cot", template: "\\cot(|)", tone: "function" }),
-    buildKey({ label: "sec", template: "\\sec(|)", tone: "secondary" }),
+    buildKey({ label: "sin", template: `\\sin(|${PLACEHOLDER_SYMBOL})`, tone: "function" }),
+    buildKey({ label: "cos", template: `\\cos(|${PLACEHOLDER_SYMBOL})`, tone: "function" }),
+    buildKey({ label: "tan", template: `\\tan(|${PLACEHOLDER_SYMBOL})`, tone: "function" }),
+    buildKey({ label: "cot", template: `\\cot(|${PLACEHOLDER_SYMBOL})`, tone: "function" }),
+    buildKey({ label: "sec", template: `\\sec(|${PLACEHOLDER_SYMBOL})`, tone: "secondary" }),
 
     buildKey({ label: "\u00b0", value: "^{\\circ}", tone: "function", typography: "math", textClass: "text-[26px]" }),
-    buildKey({ label: "sin\u207b\u00b9", template: "\\arcsin(|)", tone: "secondary", textClass: "text-[16px]" }),
-    buildKey({ label: "cos\u207b\u00b9", template: "\\arccos(|)", tone: "secondary", textClass: "text-[16px]" }),
-    buildKey({ label: "tan\u207b\u00b9", template: "\\arctan(|)", tone: "secondary", textClass: "text-[16px]" }),
-    buildKey({ label: "cot\u207b\u00b9", template: "\\operatorname{arccot}(|)", tone: "secondary", textClass: "text-[16px]" }),
-    buildKey({ label: "sec\u207b\u00b9", template: "\\operatorname{arcsec}(|)", tone: "secondary", textClass: "text-[16px]" }),
+    buildKey({ label: "sin\u207b\u00b9", template: `\\arcsin(|${PLACEHOLDER_SYMBOL})`, tone: "secondary", textClass: "text-[16px]" }),
+    buildKey({ label: "cos\u207b\u00b9", template: `\\arccos(|${PLACEHOLDER_SYMBOL})`, tone: "secondary", textClass: "text-[16px]" }),
+    buildKey({ label: "tan\u207b\u00b9", template: `\\arctan(|${PLACEHOLDER_SYMBOL})`, tone: "secondary", textClass: "text-[16px]" }),
+    buildKey({ label: "cot\u207b\u00b9", template: `\\operatorname{arccot}(|${PLACEHOLDER_SYMBOL})`, tone: "secondary", textClass: "text-[16px]" }),
+    buildKey({ label: "sec\u207b\u00b9", template: `\\operatorname{arcsec}(|${PLACEHOLDER_SYMBOL})`, tone: "secondary", textClass: "text-[16px]" }),
 
-    buildKey({ label: "sinh", template: "\\sinh(|)", tone: "secondary" }),
-    buildKey({ label: "cosh", template: "\\cosh(|)", tone: "secondary" }),
-    buildKey({ label: "tanh", template: "\\tanh(|)", tone: "secondary" }),
-    buildKey({ label: "coth", template: "\\coth(|)", tone: "secondary" }),
-    buildKey({ label: "sech", template: "\\operatorname{sech}(|)", tone: "secondary", textClass: "text-[15px]" }),
-    buildKey({ label: "csch", template: "\\operatorname{csch}(|)", tone: "secondary", textClass: "text-[15px]" }),
+    buildKey({ label: "sinh", template: `\\sinh(|${PLACEHOLDER_SYMBOL})`, tone: "secondary" }),
+    buildKey({ label: "cosh", template: `\\cosh(|${PLACEHOLDER_SYMBOL})`, tone: "secondary" }),
+    buildKey({ label: "tanh", template: `\\tanh(|${PLACEHOLDER_SYMBOL})`, tone: "secondary" }),
+    buildKey({ label: "coth", template: `\\coth(|${PLACEHOLDER_SYMBOL})`, tone: "secondary" }),
+    buildKey({ label: "sech", template: `\\operatorname{sech}(|${PLACEHOLDER_SYMBOL})`, tone: "secondary", textClass: "text-[15px]" }),
+    buildKey({ label: "csch", template: `\\operatorname{csch}(|${PLACEHOLDER_SYMBOL})`, tone: "secondary", textClass: "text-[15px]" }),
 
-    buildKey({ label: "sinh\u207b\u00b9", template: "\\operatorname{arsinh}(|)", tone: "secondary", textClass: "text-[15px]" }),
-    buildKey({ label: "cosh\u207b\u00b9", template: "\\operatorname{arcosh}(|)", tone: "secondary", textClass: "text-[15px]" }),
-    buildKey({ label: "tanh\u207b\u00b9", template: "\\operatorname{artanh}(|)", tone: "secondary", textClass: "text-[15px]" }),
-    buildKey({ label: "coth\u207b\u00b9", template: "\\operatorname{arcoth}(|)", tone: "secondary", textClass: "text-[15px]" }),
+    buildKey({ label: "sinh\u207b\u00b9", template: `\\operatorname{arsinh}(|${PLACEHOLDER_SYMBOL})`, tone: "secondary", textClass: "text-[15px]" }),
+    buildKey({ label: "cosh\u207b\u00b9", template: `\\operatorname{arcosh}(|${PLACEHOLDER_SYMBOL})`, tone: "secondary", textClass: "text-[15px]" }),
+    buildKey({ label: "tanh\u207b\u00b9", template: `\\operatorname{artanh}(|${PLACEHOLDER_SYMBOL})`, tone: "secondary", textClass: "text-[15px]" }),
+    buildKey({ label: "coth\u207b\u00b9", template: `\\operatorname{arcoth}(|${PLACEHOLDER_SYMBOL})`, tone: "secondary", textClass: "text-[15px]" }),
     buildKey({ label: "\u03c0", value: "\\pi ", tone: "function", typography: "math", textClass: "text-[28px]" }),
     buildKey({ label: "^", value: "^{}", tone: "operator", typography: "math", textClass: "text-[24px]" })
   ],
   advanced: [
     buildKey({ label: "lim\u2093\u2192\u2080", template: "\\lim_{x \\to |}", tone: "function", textClass: "text-[15px]" }),
-    buildKey({ label: "dy/dx", template: "\\frac{d}{dx}(|)", tone: "function", textClass: "text-[16px]" }),
+    buildKey({ label: "dy/dx", template: `\\frac{d}{dx}(|${PLACEHOLDER_SYMBOL})`, tone: "function", textClass: "text-[16px]" }),
     buildKey({ label: "\u222b", template: "\\int |\\,dx", tone: "function", typography: "math", textClass: "text-[30px]" }),
     buildKey({ label: "f'(x)", template: "\\frac{dy}{dx}", tone: "function", textClass: "text-[16px]" }),
     buildKey({ label: "a\u2099", template: "a_{|}", tone: "function", typography: "math", textClass: "text-[20px]" }),
 
     buildKey({ label: "lim\u207a", template: "\\lim_{x \\to |^{+}}", tone: "secondary", textClass: "text-[15px]" }),
-    buildKey({ label: "d/du", template: "\\frac{d}{d|}()", tone: "secondary", textClass: "text-[16px]" }),
-    buildKey({ label: "\u222b du", template: "\\int ()\\,d|", tone: "secondary", textClass: "text-[16px]" }),
+    buildKey({ label: "d/du", template: `\\frac{d}{d|}(${PLACEHOLDER_SYMBOL})`, tone: "secondary", textClass: "text-[16px]" }),
+    buildKey({ label: "\u222b du", template: `\\int (${PLACEHOLDER_SYMBOL})\\,d|`, tone: "secondary", textClass: "text-[16px]" }),
     buildKey({ label: "dx", value: "dx", tone: "secondary" }),
     buildKey({ label: "x\u2081,x\u2082", template: "x_{1},x_{2},\\ldots", tone: "secondary", typography: "math", textClass: "text-[15px]" }),
 
     buildKey({ label: "lim\u207b", template: "\\lim_{x \\to |^{-}}", tone: "secondary", textClass: "text-[15px]" }),
-    buildKey({ label: "d/dy", template: "\\frac{d}{dy}(|)", tone: "secondary", textClass: "text-[16px]" }),
+    buildKey({ label: "d/dy", template: `\\frac{d}{dy}(|${PLACEHOLDER_SYMBOL})`, tone: "secondary", textClass: "text-[16px]" }),
     buildKey({ label: "\u222b\u2090\u1d47", template: "\\int_{|}^{} ", tone: "secondary", typography: "math", textClass: "text-[19px]" }),
     buildKey({ label: "dy", value: "dy", tone: "secondary" }),
     buildKey({ label: "\u2192", value: "\\to ", tone: "function", typography: "math", textClass: "text-[24px]" }),

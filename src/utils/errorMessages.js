@@ -16,10 +16,36 @@ const FRONTEND_ERROR_MAP = new Map([
   ["Network Error", "បណ្តាញមានបញ្ហា។ សូមពិនិត្យអ៊ីនធឺណិតរបស់អ្នក។"]
 ]);
 
+const AI_BUSY_ERROR = "សេវាកម្ម AI កំពុងមានអ្នកប្រើប្រាស់ច្រើនពេលនេះ។ សូមព្យាយាមម្តងទៀតបន្តិចក្រោយ។";
+const AI_CONNECTION_ERROR = "មិនអាចភ្ជាប់ទៅសេវាកម្ម AI បានទេ។ សូមពិនិត្យអ៊ីនធឺណិត ហើយព្យាយាមម្តងទៀត។";
+const DEFAULT_ERROR = "មានបញ្ហាមួយបានកើតឡើង។ សូមព្យាយាមម្តងទៀត។";
+
 export const toKhmerErrorMessage = (message) => {
   if (!message) {
-    return "មានបញ្ហាមួយបានកើតឡើង។ សូមព្យាយាមម្តងទៀត។";
+    return DEFAULT_ERROR;
   }
 
-  return FRONTEND_ERROR_MAP.get(message) || message;
+  const normalizedMessage = String(message).trim();
+  const lowerMessage = normalizedMessage.toLowerCase();
+
+  if (
+    lowerMessage.includes("googlegenerativeai error") ||
+    lowerMessage.includes("service unavailable") ||
+    lowerMessage.includes("503") ||
+    lowerMessage.includes("high demand") ||
+    lowerMessage.includes("model is currently experiencing high demand") ||
+    lowerMessage.includes("please try again later")
+  ) {
+    return AI_BUSY_ERROR;
+  }
+
+  if (
+    lowerMessage.includes("generativelanguage.googleapis.com") ||
+    lowerMessage.includes("error fetching from") ||
+    lowerMessage.includes("failed to fetch")
+  ) {
+    return AI_CONNECTION_ERROR;
+  }
+
+  return FRONTEND_ERROR_MAP.get(normalizedMessage) || normalizedMessage;
 };
