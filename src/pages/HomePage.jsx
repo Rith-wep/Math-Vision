@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { BookOpenCheck, BookOpenText, Calculator, Camera, ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
 import { ScanHeader } from "../components/ScanHeader.jsx";
@@ -160,6 +161,27 @@ export const HomePage = () => {
             })}
           </section>
         </main>
+
+        <footer className="border-t border-slate-100 px-4 py-4 md:px-5 lg:px-6">
+          <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4">
+            <p className="text-sm font-semibold text-slate-900">Math-Vision</p>
+            <p className="mt-1 text-xs leading-6 text-slate-600">
+              Math-Vision is an AI-powered math learning app that helps students solve problems step by step,
+              practice quizzes, and review solution history.
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-3 text-xs font-medium text-emerald-700">
+              <Link to="/about-us" className="transition hover:text-emerald-800 hover:underline">
+                About Us
+              </Link>
+              <Link to="/privacy" className="transition hover:text-emerald-800 hover:underline">
+                Privacy Policy
+              </Link>
+              <Link to="/terms" className="transition hover:text-emerald-800 hover:underline">
+                Terms of Service
+              </Link>
+            </div>
+          </div>
+        </footer>
 
         <UploadPhoto
           open={isUploadOpen}

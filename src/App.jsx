@@ -11,10 +11,12 @@ import { AboutUsPage } from "./pages/AboutUsPage.jsx";
 import { HomePage } from "./pages/HomePage.jsx";
 import { HistoryPage } from "./pages/HistoryPage.jsx";
 import { LoginPage } from "./pages/LoginPage.jsx";
+import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage.jsx";
 import { ProfilePage } from "./pages/ProfilePage.jsx";
 import { QcmPage } from "./pages/QcmPage.jsx";
 import { SolvePage } from "./pages/SolvePage.jsx";
 import { SolutionPage } from "./pages/SolutionPage.jsx";
+import { TermsOfServicePage } from "./pages/TermsOfServicePage.jsx";
 
 const splashSymbols = [
   { symbol: "π", className: "left-[10%] top-[16%] text-5xl md:text-6xl", duration: 8.5, delay: 0.2 },
@@ -238,10 +240,12 @@ const App = () => {
           <Route path="/about-us" element={<AboutUsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/history" element={<HistoryPage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/qcm" element={<QcmPage />} />
           <Route path="/solve" element={<SolvePage />} />
           <Route path="/docs" element={<DocsPage />} />
           <Route path="/solution" element={<SolutionPage />} />
+          <Route path="/terms" element={<TermsOfServicePage />} />
         </Routes>
       </div>
       {shouldShowBottomNav && <BottomNavigation />}
