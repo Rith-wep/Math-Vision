@@ -9,26 +9,14 @@ import {
   RotateCcw
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { BlockMath } from "react-katex";
 
 import { ScanHeader } from "../components/ScanHeader.jsx";
 import { SkeletonBlock } from "../components/SkeletonBlock.jsx";
+import { QuestionContent } from "../components/solution/SolutionMathContent.jsx";
+import { SafeMath } from "../components/solution/SafeMath.jsx";
 import { formulaService } from "../services/formulaService.js";
 
 const HISTORY_PAGE_SIZE = 5;
-
-const sanitizeLatex = (value) => {
-  if (!value) {
-    return "";
-  }
-
-  return value
-    .trim()
-    .replace(/^\$+|\$+$/g, "")
-    .replace(/\\\[(.*)\\\]/s, "$1")
-    .replace(/\\\((.*)\\\)/s, "$1")
-    .trim();
-};
 
 const getDateGroupLabel = (value) => {
   const entryDate = new Date(value);
@@ -325,12 +313,16 @@ export const HistoryPage = () => {
 
                             <div className="mt-3 min-w-0 text-center">
                               <div className="max-w-full overflow-x-auto overflow-y-hidden text-xl font-semibold text-slate-900">
-                                <BlockMath math={sanitizeLatex(questionText)} />
+                                <QuestionContent text={questionText} />
                               </div>
 
                               <div className="mt-2 max-w-full overflow-x-auto overflow-y-hidden text-base text-blue-500">
                                 {finalAnswer ? (
-                                  <BlockMath math={sanitizeLatex(finalAnswer)} />
+                                  <SafeMath
+                                    math={finalAnswer}
+                                    mode="block"
+                                    fallbackClassName="whitespace-pre-wrap"
+                                  />
                                 ) : (
                                   <p className="text-sm text-slate-500">Solved with Math Vision</p>
                                 )}

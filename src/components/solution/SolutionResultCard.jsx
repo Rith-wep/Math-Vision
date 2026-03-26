@@ -12,7 +12,7 @@ export const SolutionResultCard = memo(function SolutionResultCard({
         <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">
           Result
         </p>
-        <div className="mt-3 overflow-x-auto text-3xl font-extrabold text-green-700">
+        <div className="mt-3 overflow-x-auto text-2xl font-extrabold text-green-700 sm:text-3xl">
           {plainFinalAnswer ? (
             <p>{plainFinalAnswer}</p>
           ) : (

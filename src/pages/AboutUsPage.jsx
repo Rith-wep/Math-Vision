@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
   BookOpenCheck,
   BrainCircuit,
+  Cpu,
   GraduationCap,
   LibraryBig,
   ShieldCheck,
@@ -65,6 +67,26 @@ const featureCards = [
 export const AboutUsPage = () => {
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (!window.location.hash) {
+      return;
+    }
+
+    const targetId = window.location.hash.replace("#", "");
+    const targetElement = document.getElementById(targetId);
+
+    if (!targetElement) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      targetElement.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    });
+  }, []);
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -80,10 +102,10 @@ export const AboutUsPage = () => {
             whileHover={{ x: -4 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate("/")}
-            className="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-emerald-600"
+            className="mb-8 inline-flex items-center border border-green-500 shadow-md px-4 rounded-full text-green-500 py-2 gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-emerald-600"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span>ត្រឡប់ទៅកាន់ទំព័រដើម</span>
+            <span>Back to home</span>
           </motion.button>
 
           <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-400 via-[#22c55e] to-green-500 px-6 py-6 text-white shadow-[0_22px_50px_rgba(34,197,94,0.20)] sm:px-8 sm:py-8">
@@ -125,8 +147,40 @@ export const AboutUsPage = () => {
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#22c55e]/10 text-[#22c55e] transition-colors duration-300 group-hover:bg-[#22c55e] group-hover:text-white">
                     <Icon className="h-6 w-6" />
                   </div>
-                  <div>
-                    <h2 className="text-base font-bold text-slate-900">{title}</h2>
+                  <div className="text-left">
+                    {id === "instant-solutions" ? (
+                      <h2 className="space-y-0.5">
+                        <span className="block text-base font-bold text-slate-900">
+                          {title.replace(" (Smart Solutions)", "")}
+                        </span>
+                        <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-xs font-mono text-emerald-600 sm:text-sm">
+                          <Cpu className="h-3 w-3 opacity-70 sm:h-3.5 sm:w-3.5" />
+                          <span>Smart Solutions</span>
+                        </span>
+                      </h2>
+                    ) : id === "smart-library" ? (
+                      <h2 className="space-y-0.5">
+                        <span className="block text-base font-bold text-slate-900">
+                          {title.replace(" (Knowledge Hub)", "")}
+                        </span>
+                        <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-xs font-mono text-emerald-600 sm:text-sm">
+                          <BookOpenCheck className="h-3 w-3 opacity-70 sm:h-3.5 sm:w-3.5" />
+                          <span>Knowledge Hub</span>
+                        </span>
+                      </h2>
+                    ) : id === "expert-guidance" ? (
+                      <h2 className="space-y-0.5">
+                        <span className="block text-base font-bold text-slate-900">
+                          {title.replace(" (Expert Guidance)", "")}
+                        </span>
+                        <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-xs font-mono text-emerald-600 sm:text-sm">
+                          <BrainCircuit className="h-3 w-3 opacity-70 sm:h-3.5 sm:w-3.5" />
+                          <span>Expert Guidance</span>
+                        </span>
+                      </h2>
+                    ) : (
+                      <h2 className="text-base font-bold text-slate-900">{title}</h2>
+                    )}
                     <p className="mt-2 text-sm leading-relaxed text-slate-500">{body}</p>
                   </div>
                 </div>
@@ -160,6 +214,20 @@ export const AboutUsPage = () => {
                 </p>
               </div>
             </div>
+          </section>
+
+          <section id="privacy" className="mt-8 scroll-mt-24 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+            <h4 className="text-xs font-semibold text-slate-700">🛡️ Privacy Policy (គោលការណ៍ឯកជនភាព)</h4>
+            <p className="mt-2 text-xs leading-relaxed text-slate-600">
+              "យើងរក្សាទុកតែឈ្មោះ និងរូបភាព Profile ពី Google របស់អ្នក ដើម្បីសម្គាល់គណនីប្រើប្រាស់ប៉ុណ្ណោះ។ រាល់លំហាត់ដែលបានដោះស្រាយ នឹងត្រូវរក្សាទុកក្នុងបណ្ណាល័យសកលដោយអនាមិក ដើម្បីជាប្រយោជន៍ដល់ការសិក្សារួម ដោយមិនមានការចែករំលែកទិន្នន័យផ្ទាល់ខ្លួនទៅកាន់ភាគីទីបីឡើយ។"
+            </p>
+          </section>
+
+          <section id="terms" className="mt-4 scroll-mt-24 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+            <h4 className="text-xs font-semibold text-slate-700">⚖️ Terms of Service (លក្ខខណ្ឌប្រើប្រាស់)</h4>
+            <p className="mt-2 text-xs leading-relaxed text-slate-600">
+              "ខ្លឹមសារ និងដំណោះស្រាយក្នុង Math Vision គឺសម្រាប់ជាជំនួយដល់ការសិក្សាអប់រំតែប៉ុណ្ណោះ។ អ្នកប្រើប្រាស់ត្រូវបានលើកទឹកចិត្តឱ្យផ្ទៀងផ្ទាត់ចម្លើយបន្ថែមជាមួយសៀវភៅពុម្ព ឬគ្រូបង្រៀន។ ការប្រើប្រាស់កម្មវិធីនេះ មានន័យថាអ្នកយល់ព្រមតាមលក្ខខណ្ឌអប់រំ និងសុវត្ថិភាពប្រព័ន្ធរបស់យើង។"
+            </p>
           </section>
 
           <footer className="mt-12 text-center">

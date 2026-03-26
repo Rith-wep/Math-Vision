@@ -3,11 +3,10 @@ import { Download, Send } from "lucide-react";
 
 export const SolutionActions = memo(function SolutionActions({
   onExportPdf,
-  onShare,
-  onCopy
+  onShare
 }) {
   return (
-    <section data-pdf-ignore="true" className="mt-6 grid grid-cols-3 gap-2.5 sm:gap-3">
+    <section data-pdf-ignore="true" className="mt-6 grid grid-cols-2 gap-2.5 sm:gap-3">
       <button
         type="button"
         onClick={onExportPdf}
@@ -24,14 +23,6 @@ export const SolutionActions = memo(function SolutionActions({
       >
         <Send className="h-4 w-4" />
         <span>Share</span>
-      </button>
-
-      <button
-        type="button"
-        onClick={onCopy}
-        className="min-h-11 rounded-2xl border border-green-100 bg-white px-3 py-3 text-[13px] font-medium text-green-800 transition hover:bg-green-50 sm:min-h-12 sm:px-4 sm:text-sm"
-      >
-        Copy
       </button>
     </section>
   );

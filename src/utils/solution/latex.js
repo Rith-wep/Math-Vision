@@ -10,9 +10,10 @@ const INLINE_LATEX_FRAGMENT_PATTERN =
 const LATEX_COMMAND_PATTERN =
   /\\(?:frac|sqrt|sin|cos|tan|cot|sec|csc|ln|log|alpha|beta|gamma|theta|Delta|pi|sum|int|infty|pm|mp|geq|leq|neq|cdot|times|div|to|rightarrow|leftarrow|left|right)\b/;
 
-const SIMPLE_MATH_PATTERN = /(?:\d+\s*[-+*/=]\s*\d+|[A-Za-z]\s*=\s*[-+*/\dA-Za-z]+)/;
+const SIMPLE_MATH_PATTERN =
+  /(?:\d+\s*[-+*/=<>]\s*\d+|[A-Za-z]\s*(?:=|<|>|<=|>=|≤|≥)\s*[-+*/\dA-Za-z.]+)/;
 const ALGEBRAIC_EXPRESSION_PATTERN =
-  /^(?=.*[A-Za-z0-9])(?=.*[+\-*/^_=(){}\[\]])[A-Za-z0-9\s+\-*/^_=(){}\[\].,|]+$/;
+  /^(?=.*[A-Za-z0-9])(?=.*[+\-*/^_=<>≤≥(){}\[\]])[A-Za-z0-9\s+\-*/^_=<>≤≥(){}\[\].,|]+$/;
 
 export const sanitizeLatex = (value = "") =>
   value
@@ -145,6 +146,10 @@ export const latexToReadableText = (value = "") => {
       .replace(/\\geq/g, " greater than or equal to ")
       .replace(/\\leq/g, " less than or equal to ")
       .replace(/\\neq/g, " not equal to ")
+      .replace(/>=|≥/g, " greater than or equal to ")
+      .replace(/<=|≤/g, " less than or equal to ")
+      .replace(/>/g, " greater than ")
+      .replace(/</g, " less than ")
       .replace(/\\infty/g, " infinity ")
       .replace(/\\pi/g, " pi ")
       .replace(/\\theta/g, " theta ")

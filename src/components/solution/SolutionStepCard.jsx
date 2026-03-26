@@ -74,7 +74,7 @@ export const SolutionStepCard = memo(function SolutionStepCard({
               solutionStyle === "geometry"
                 ? "border border-green-100 bg-gradient-to-r from-green-50 via-white to-green-50"
                 : "bg-green-50"
-            }`}
+            } text-sm sm:text-base`}
           >
             <SafeMath math={formula} mode="block" fallbackClassName="whitespace-pre-wrap" />
           </div>

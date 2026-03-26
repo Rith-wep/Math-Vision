@@ -410,6 +410,15 @@ export const QcmPage = () => {
           renderAuthGate()
         ) : !selectedSubject ? (
           <main className="flex-1 px-4 py-4 md:px-5 lg:px-6">
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="inline-flex mb-2 items-center gap-2 rounded-full border border-green-100 bg-white px-3 py-2 text-sm font-medium text-green-700 shadow-sm transition hover:bg-green-50"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back</span>
+            </button>
+
             <section className="premium-surface rounded-[2rem] border border-green-100/80 p-4">
               <div className="inline-flex items-center gap-2 rounded-full border border-green-100 bg-white/90 px-3 py-1 text-[11px] font-semibold tracking-[0.16em] text-green-700">
                 <Trophy className="h-3.5 w-3.5" />

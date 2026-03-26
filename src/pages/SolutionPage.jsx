@@ -13,7 +13,6 @@ import { SolutionStepsTimeline } from "../components/solution/SolutionStepsTimel
 import { useSolutionData } from "../hooks/useSolutionData.js";
 import {
   buildShareText,
-  buildSolutionCopyText,
   buildPdfFile,
   downloadPdfFile
 } from "../services/solutionExportService.js";
@@ -189,32 +188,6 @@ export const SolutionPage = () => {
     }
   }, [finalAnswerText, questionDisplayText, stepsCount]);
 
-  const handleCopy = useCallback(async () => {
-    if (!solution) {
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(
-        buildSolutionCopyText({
-          question: questionDisplayText,
-          finalAnswer: finalAnswerText,
-          steps: solution.steps || []
-        })
-      );
-      setErrorMessage("");
-      setActionFeedback({
-        type: "success",
-        message: "Solution copied to clipboard."
-      });
-    } catch {
-      setActionFeedback({
-        type: "error",
-        message: "Unable to copy the solution. Please try again."
-      });
-    }
-  }, [finalAnswerText, questionDisplayText, setErrorMessage, solution]);
-
   const handleBack = useCallback(() => {
     navigate("/", { state: { reset: true } });
   }, [navigate]);
@@ -314,7 +287,6 @@ export const SolutionPage = () => {
             <SolutionActions
               onExportPdf={handleExportPdf}
               onShare={handleShare}
-              onCopy={handleCopy}
             />
 
             <footer data-pdf-ignore="true" className="pb-6 pt-5 text-center text-[11px] text-slate-400">

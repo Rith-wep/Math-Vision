@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Delete, Sparkles } from "lucide-react";
 
@@ -255,8 +255,23 @@ export const MathKeyboard = ({
 }) => {
   const [inputMode, setInputMode] = useState("math");
   const [activeCategory, setActiveCategory] = useState("operators");
+  const [isDesktop, setIsDesktop] = useState(false);
   const activeConfig = inputMode === "text" ? textKeyboardConfig : categoryConfig[activeCategory];
   const keys = inputMode === "text" ? textKeyboardConfig.keys : keyboardLayouts[activeCategory];
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const mediaQuery = window.matchMedia("(min-width: 768px)");
+    const syncDesktopState = () => setIsDesktop(mediaQuery.matches);
+
+    syncDesktopState();
+    mediaQuery.addEventListener("change", syncDesktopState);
+
+    return () => mediaQuery.removeEventListener("change", syncDesktopState);
+  }, []);
 
   const utilityState = useMemo(
     () => ({
@@ -274,10 +289,15 @@ export const MathKeyboard = ({
   );
 
   return (
-    <aside className="fixed inset-x-0 bottom-0 z-30 bg-transparent px-0 pb-[max(0.25rem,env(safe-area-inset-bottom))]">
-      <div className="app-shell mx-auto w-full overflow-hidden rounded-t-[2rem] border border-slate-100 bg-white shadow-[0_-10px_28px_rgba(15,23,42,0.06)]">
-        <div className="border-b border-slate-50 px-3 py-2">
-          <div className="flex items-center gap-1.5">
+    <motion.aside
+      drag={isDesktop}
+      dragMomentum={false}
+      dragElastic={0.08}
+      className="fixed inset-x-0 bottom-0 z-30 bg-transparent px-0 pb-[max(0.25rem,env(safe-area-inset-bottom))] md:inset-x-auto md:bottom-4 md:left-1/2 md:w-auto md:-translate-x-1/2 md:px-0 md:pb-0"
+    >
+      <div className="app-shell mx-auto w-full overflow-hidden rounded-t-[2rem] border border-slate-100 bg-white shadow-[0_-10px_28px_rgba(15,23,42,0.06)] md:w-[450px] md:max-w-[450px] md:rounded-[2rem] md:border-slate-200 md:shadow-[0_18px_48px_rgba(15,23,42,0.12)]">
+        <div className="border-b border-slate-50 px-3 py-2 md:px-4 md:py-3">
+          <div className="flex items-center gap-1.5 md:gap-2">
             {utilityButtons.map((button) => {
               const Icon = button.icon;
               const state = utilityState[button.type];
@@ -290,12 +310,12 @@ export const MathKeyboard = ({
                   disabled={state?.disabled}
                   className={`flex items-center justify-center text-slate-900 transition duration-200 ${
                     button.type === "label"
-                      ? "min-w-[3.5rem] justify-start rounded-lg border border-emerald-200 bg-white px-3 text-[17px] font-medium text-emerald-700 shadow-sm hover:border-emerald-300 hover:bg-white active:bg-white"
+                      ? "min-w-[3.5rem] justify-start rounded-lg border border-emerald-200 bg-white px-3 text-[17px] font-medium text-emerald-700 shadow-sm hover:border-emerald-300 hover:bg-white active:bg-white md:min-w-[4.25rem] md:justify-center"
                       : button.type === "solve"
-                        ? "ml-2 h-10 min-w-[3.25rem] rounded-lg bg-emerald-500 px-3 text-white shadow-[0_8px_18px_rgba(16,185,129,0.24)] hover:bg-emerald-600 active:bg-emerald-700"
+                        ? "ml-2 h-10 min-w-[3.25rem] rounded-lg bg-emerald-500 px-3 text-white shadow-[0_8px_18px_rgba(16,185,129,0.24)] hover:bg-emerald-600 active:bg-emerald-700 md:min-w-[6.5rem] md:px-4"
                       : button.type === "delete"
-                        ? "ml-auto h-10 w-10 rounded-lg border border-slate-100 hover:bg-slate-50 active:bg-slate-100"
-                        : "h-9 w-9 rounded-lg hover:bg-slate-50 active:bg-slate-100"
+                        ? "ml-auto h-10 w-10 rounded-lg border border-slate-100 hover:bg-slate-50 active:bg-slate-100 md:h-11 md:w-11"
+                        : "h-9 w-9 rounded-lg hover:bg-slate-50 active:bg-slate-100 md:h-10 md:w-10"
                   } ${state?.disabled ? "opacity-40" : ""}`}
                 >
                   {button.type === "solve" ? (
@@ -317,7 +337,7 @@ export const MathKeyboard = ({
         {inputMode === "math" ? (
           <div className="px-3.5 pb-2 pt-2">
             <div
-              className="grid gap-2"
+              className="grid gap-2 md:gap-2.5"
               style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}
             >
               {Object.entries(categoryConfig).map(([categoryKey, category]) => {
@@ -328,7 +348,7 @@ export const MathKeyboard = ({
                     key={categoryKey}
                     type="button"
                     onClick={() => setActiveCategory(categoryKey)}
-                    className={`relative mt-1.5 flex h-9 min-w-0 items-center justify-center overflow-hidden rounded-lg border px-2 text-center font-sans transition duration-200 ${
+                    className={`relative mt-1.5 flex h-9 min-w-0 items-center justify-center overflow-hidden rounded-lg border px-2 text-center font-sans transition duration-200 md:h-11 md:rounded-xl ${
                       isActive
                         ? "border-emerald-100 bg-white text-emerald-600 shadow-[0_8px_18px_rgba(16,185,129,0.10)]"
                         : "border-slate-100 bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100"
@@ -348,7 +368,7 @@ export const MathKeyboard = ({
         ) : null}
 
         <div
-          className="mt-1.5 grid gap-2 px-3.5 pb-4"
+          className="mt-1.5 grid gap-2 px-3.5 pb-4 md:gap-2.5 md:px-4 md:pb-5"
           style={{ gridTemplateColumns: `repeat(${activeConfig.columns}, minmax(0, 1fr))` }}
         >
           {keys.map((key) => {
@@ -359,7 +379,7 @@ export const MathKeyboard = ({
                 onClick={() => onKeyPress?.(key)}
                 disabled={disabled}
                 whileTap={{ scale: 0.98 }}
-                className={`aspect-square w-full overflow-hidden rounded-[1.2rem] border px-2 py-1.5 text-center transition duration-200 disabled:opacity-50 ${getKeyButtonClasses(
+                className={`aspect-square w-full overflow-hidden rounded-[1.2rem] border px-2 py-1.5 text-center transition duration-200 disabled:opacity-50 md:aspect-[1.05/0.82] md:rounded-[1.35rem] md:px-2.5 md:py-2 ${getKeyButtonClasses(
                   key
                 )}`}
               >
@@ -369,6 +389,6 @@ export const MathKeyboard = ({
           })}
         </div>
       </div>
-    </aside>
+    </motion.aside>
   );
 };
