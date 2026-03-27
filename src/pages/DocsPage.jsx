@@ -5,7 +5,8 @@ import {
   Download,
   File,
   FileText,
-  Search
+  Search,
+  X
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -14,9 +15,14 @@ import { SkeletonBlock } from "../components/SkeletonBlock.jsx";
 import { formulaService } from "../services/formulaService.js";
 import { toKhmerErrorMessage } from "../utils/errorMessages.js";
 
-const defaultCategories = ["ទាំងអស់", "ពិជគណិត", "ធរណីមាត្រ", "វិភាគ"];
+const allCategoryLabel = "ទាំងអស់";
+const defaultCategories = [allCategoryLabel, "ពិជគណិត", "ធរណីមាត្រ", "វិភាគ"];
 
 const estimateFileSize = (formula) => {
+  if (Number.isFinite(Number(formula.file_size)) && Number(formula.file_size) > 0) {
+    return `${(Number(formula.file_size) / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
   const totalLength = `${formula.title_kh || ""}${formula.description_kh || ""}${formula.latex_content || ""}`.length;
   const estimatedMb = Math.max(0.4, totalLength / 900);
   return `${estimatedMb.toFixed(1)} MB`;
@@ -37,7 +43,7 @@ const getDocumentCategory = (formula) => {
     return "វិភាគ";
   }
 
-  return category || "ទាំងអស់";
+  return category || allCategoryLabel;
 };
 
 const getDocumentType = (formula, index) => {
@@ -66,7 +72,8 @@ export const DocsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [searchValue, setSearchValue] = useState("");
-  const [activeCategory, setActiveCategory] = useState("ទាំងអស់");
+  const [previewDocument, setPreviewDocument] = useState(null);
+  const [activeCategory, setActiveCategory] = useState(allCategoryLabel);
 
   useEffect(() => {
     const fetchDocuments = async () => {
@@ -90,7 +97,7 @@ export const DocsPage = () => {
 
     documents.forEach((formula) => {
       const category = getDocumentCategory(formula);
-      if (category && category !== "All") {
+      if (category && category !== allCategoryLabel) {
         categorySet.add(category);
       }
     });
@@ -103,7 +110,7 @@ export const DocsPage = () => {
 
     return documents.filter((formula) => {
       const category = getDocumentCategory(formula);
-      const matchesCategory = activeCategory === "All" || category === activeCategory;
+      const matchesCategory = activeCategory === allCategoryLabel || category === activeCategory;
       const matchesSearch =
         !normalizedSearch ||
         `${formula.title_kh} ${formula.description_kh} ${formula.category}`
@@ -115,6 +122,11 @@ export const DocsPage = () => {
   }, [activeCategory, documents, searchValue]);
 
   const handleDownload = (formula) => {
+    if (formula.pdf_url) {
+      window.open(formula.pdf_url, "_blank", "noopener,noreferrer");
+      return;
+    }
+
     const blob = new Blob([buildDownloadContent(formula)], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
@@ -122,6 +134,15 @@ export const DocsPage = () => {
     anchor.download = `${(formula.title_kh || "math-resource").replace(/[\\/:*?"<>|]/g, "-")}.txt`;
     anchor.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handlePreviewOpen = (formula) => {
+    if (!formula.pdf_url) {
+      handleDownload(formula);
+      return;
+    }
+
+    setPreviewDocument(formula);
   };
 
   return (
@@ -242,27 +263,49 @@ export const DocsPage = () => {
                       <motion.article
                         key={formula._id || `${formula.title_kh}-${formula.grade}`}
                         whileTap={{ scale: 0.95 }}
-                        className="rounded-3xl border border-slate-100 bg-white p-3.5 shadow-sm"
+                        className="rounded-3xl border border-slate-100 bg-white p-3 shadow-sm"
                       >
-                        <div
-                          className={`flex h-16 w-16 items-center justify-center rounded-2xl ${
-                            isPdf ? "bg-red-50 text-red-500" : "bg-blue-50 text-blue-500"
+                        <button
+                          type="button"
+                          onClick={() => handlePreviewOpen(formula)}
+                          className={`relative flex h-24 w-full items-center justify-center overflow-hidden rounded-2xl ${
+                            formula.thumbnail_url
+                              ? "bg-slate-100"
+                              : isPdf
+                                ? "bg-red-50 text-red-500"
+                                : "bg-blue-50 text-blue-500"
                           }`}
                         >
-                          <Icon className="h-8 w-8" />
-                        </div>
+                          {formula.thumbnail_url ? (
+                            <img
+                              src={formula.thumbnail_url}
+                              alt={formula.title_kh || "Document thumbnail"}
+                              className="h-full w-full bg-white object-contain p-1.5"
+                            />
+                          ) : (
+                            <Icon className="h-10 w-10" />
+                          )}
+                          {formula.pdf_url ? (
+                            <span className="absolute bottom-2 right-2 rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold text-slate-700 shadow-sm">
+                              Preview
+                            </span>
+                          ) : null}
+                        </button>
 
-                        <div className="mt-4 min-h-[4.25rem]">
+                        <div className="mt-3 min-h-[5rem]">
                           <h2 className="line-clamp-2 text-sm font-bold leading-snug text-slate-900">
                             {formula.title_kh}
                           </h2>
-                          <p className="mt-2 text-xs text-slate-400">{estimateFileSize(formula)}</p>
+                          <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-slate-500">
+                            {formula.description_kh || "No description available."}
+                          </p>
+                          <p className="mt-1.5 text-xs text-slate-400">{estimateFileSize(formula)}</p>
                         </div>
 
                         <button
                           type="button"
                           onClick={() => handleDownload(formula)}
-                          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-green-800 px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
+                          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-green-800 px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
                         >
                           <Download className="h-4 w-4" />
                           <span>Download</span>
@@ -276,6 +319,46 @@ export const DocsPage = () => {
           )}
         </main>
       </div>
+
+      {previewDocument ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 px-4 py-6">
+          <div className="flex h-[min(90vh,56rem)] w-full max-w-4xl flex-col overflow-hidden rounded-[2rem] bg-white shadow-2xl">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+              <div className="min-w-0">
+                <h2 className="truncate text-base font-bold text-slate-900">{previewDocument.title_kh}</h2>
+                <p className="mt-1 line-clamp-2 text-xs text-slate-500">{previewDocument.description_kh}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPreviewDocument(null)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50"
+                aria-label="Close preview"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 bg-slate-100">
+              <iframe
+                src={previewDocument.pdf_url}
+                title={previewDocument.title_kh || "PDF preview"}
+                className="h-full w-full border-0"
+              />
+            </div>
+
+            <div className="flex justify-end border-t border-slate-100 px-5 py-4">
+              <button
+                type="button"
+                onClick={() => handleDownload(previewDocument)}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-green-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
+              >
+                <Download className="h-4 w-4" />
+                <span>Open PDF</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </motion.div>
   );
 };

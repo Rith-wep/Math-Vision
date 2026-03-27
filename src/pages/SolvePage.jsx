@@ -16,9 +16,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import { MathKeyboard } from "../components/MathKeyboard.jsx";
 import { ScanHeader } from "../components/ScanHeader.jsx";
-import { SkeletonBlock } from "../components/SkeletonBlock.jsx";
 import { UploadPhoto } from "../components/UploadPhoto.jsx";
-import { formulaService } from "../services/formulaService.js";
 import { toKhmerErrorMessage } from "../utils/errorMessages.js";
 
 const featureBadges = [
@@ -349,14 +347,14 @@ export const SolvePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const inputSectionRef = useRef(null);
-  const [formulaSuggestions, setFormulaSuggestions] = useState([]);
-  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [expression, setExpression] = useState("");
   const [selectionRange, setSelectionRange] = useState({ start: 0, end: 0 });
   const [editIndex, setEditIndex] = useState(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isInputReady, setIsInputReady] = useState(false);
+  const isLoadingSuggestions = false;
+  const formulaSuggestions = [];
 
   const syncSelectionRange = (start, end = start) => {
     const safeStart = Math.max(0, start);
@@ -385,23 +383,6 @@ export const SolvePage = () => {
     setExpression(nextValue);
     syncSelectionRange(nextSelectionStart, nextSelectionEnd);
   };
-
-  useEffect(() => {
-    const fetchFormulas = async () => {
-      try {
-        const data = await formulaService.getAll();
-        setFormulaSuggestions(data);
-      } catch (error) {
-        setErrorMessage(
-          toKhmerErrorMessage(error.response?.data?.message || "Unable to load formula suggestions.")
-        );
-      } finally {
-        setIsLoadingSuggestions(false);
-      }
-    };
-
-    fetchFormulas();
-  }, []);
 
   useEffect(() => {
     if (location.state?.reset) {
@@ -763,7 +744,7 @@ export const SolvePage = () => {
             </motion.div>
           )}
 
-          {!isLoadingSuggestions && formulaSuggestions.length > 0 && (
+          {false && !isLoadingSuggestions && formulaSuggestions.length > 0 && (
             <div className="premium-card mt-5 rounded-3xl border border-green-100/80 bg-green-50/80 p-3.5 text-sm leading-relaxed text-slate-600">
               Example from the formula library:{" "}
               <span className="font-medium text-slate-900">{formulaSuggestions[0].title_kh}</span>

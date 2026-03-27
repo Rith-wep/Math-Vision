@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BlockMath } from "react-katex";
+import { BlockMath, InlineMath } from "react-katex";
 import {
   ArrowLeft,
   Check,
@@ -110,6 +110,105 @@ const QuestionSkeleton = () => (
     </section>
   </main>
 );
+
+const khmerCharacterPattern = /[\u1780-\u17FF]/;
+const escapedLatexPattern = /\\[a-zA-Z]+|\\[{}[\]]/;
+const plainMathPattern =
+  /(?:[A-Za-z0-9(){}\[\]^_]+(?:\s*(?:[+\-*/=^]|≤|≥|<|>|±)\s*[A-Za-z0-9(){}\[\]^_]+)+)|(?:[A-Za-z]\s*∈\s*[({[]?.+[)}\]]?)/;
+
+const isMathLikeExpression = (value = "", displayMode = "text") => {
+  const normalizedValue = typeof value === "string" ? value.trim() : "";
+
+  if (!normalizedValue) {
+    return false;
+  }
+
+  if (displayMode === "latex") {
+    return true;
+  }
+
+  if (escapedLatexPattern.test(normalizedValue)) {
+    return true;
+  }
+
+  if (khmerCharacterPattern.test(normalizedValue)) {
+    return false;
+  }
+
+  return plainMathPattern.test(normalizedValue);
+};
+
+const renderKatexFallback = (value) => <span>{value}</span>;
+
+const renderQuizContent = (value, displayMode = "text", inline = false) => {
+  if (!value) {
+    return null;
+  }
+
+  if (!isMathLikeExpression(value, displayMode)) {
+    return <span>{value}</span>;
+  }
+
+  return inline ? (
+    <InlineMath math={value} renderError={() => renderKatexFallback(value)} />
+  ) : (
+    <BlockMath math={value} renderError={() => renderKatexFallback(value)} />
+  );
+};
+
+const explanationMathPattern =
+  /(\\[A-Za-z]+(?:\s*\{[^{}]*\}|\s*\[[^[\]]*\]|\s*[-+=*/^_()0-9A-Za-z.,])*)|([A-Za-z0-9(){}\[\]^_\\]+(?:\s*(?:[+\-*/=^]|≤|≥|<|>|±)\s*[A-Za-z0-9(){}\[\]^_\\]+)+)/g;
+
+const renderExplanationContent = (value = "") => {
+  if (!value) {
+    return null;
+  }
+
+  const segments = [];
+  let lastIndex = 0;
+
+  value.replace(explanationMathPattern, (match, _group, offset) => {
+    if (offset > lastIndex) {
+      segments.push({
+        type: "text",
+        value: value.slice(lastIndex, offset)
+      });
+    }
+
+    const trimmedMatch = match.trim();
+    segments.push({
+      type: isMathLikeExpression(trimmedMatch, "text") ? "latex" : "text",
+      value: trimmedMatch
+    });
+    lastIndex = offset + match.length;
+    return match;
+  });
+
+  if (lastIndex < value.length) {
+    segments.push({
+      type: "text",
+      value: value.slice(lastIndex)
+    });
+  }
+
+  if (!segments.length) {
+    return <span>{value}</span>;
+  }
+
+  return (
+    <span className="whitespace-pre-wrap">
+      {segments.map((segment, index) =>
+        segment.type === "latex" ? (
+          <span key={`explanation-latex-${index}`} className="mx-0.5 inline-block">
+            {renderQuizContent(segment.value, "latex", true)}
+          </span>
+        ) : (
+          <span key={`explanation-text-${index}`}>{segment.value}</span>
+        )
+      )}
+    </span>
+  );
+};
 
 export const QcmPage = () => {
   const navigate = useNavigate();
@@ -703,7 +802,11 @@ export const QcmPage = () => {
                     </h1>
                     <div className="rounded-[1.5rem] border border-green-100 bg-green-50/70 px-4 py-3 text-center">
                       <div className="overflow-x-auto text-base text-slate-900">
-                        <BlockMath math={currentQuestion.latex} />
+                        {renderQuizContent(
+                          currentQuestion.contentValue,
+                          currentQuestion.contentDisplayMode || "text",
+                          (currentQuestion.contentDisplayMode || "text") !== "latex"
+                        )}
                       </div>
                     </div>
                   </div>
@@ -738,7 +841,11 @@ export const QcmPage = () => {
                           </div>
                           <div className="min-w-0 text-sm font-semibold leading-relaxed">
                             <div className="overflow-x-auto">
-                              <BlockMath math={option.label} />
+                              {renderQuizContent(
+                                option.label,
+                                option.displayMode || "text",
+                                (option.displayMode || "text") !== "latex"
+                              )}
                             </div>
                           </div>
                         </div>
@@ -790,9 +897,13 @@ export const QcmPage = () => {
                       <div className="space-y-2">
                         <p className="font-semibold text-white">ចម្លើយត្រឹមត្រូវ៖</p>
                         <div className="overflow-x-auto rounded-2xl bg-white/10 px-3 py-2">
-                          <BlockMath math={correctOption?.label || ""} />
+                          {renderQuizContent(
+                            correctOption?.label || "",
+                            correctOption?.displayMode || "text",
+                            (correctOption?.displayMode || "text") !== "latex"
+                          )}
                         </div>
-                        <p>{currentQuestion.explanationKh}</p>
+                        <p>{renderExplanationContent(currentQuestion.explanationKh)}</p>
                       </div>
                     )}
                   </div>

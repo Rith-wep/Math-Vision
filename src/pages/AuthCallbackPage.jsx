@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext.jsx";
+import { resolvePostLoginPath } from "../utils/domainRouting.js";
 
 export const AuthCallbackPage = () => {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ export const AuthCallbackPage = () => {
     try {
       const nextUser = JSON.parse(serializedUser);
       completeGoogleAuth({ nextToken: token, nextUser });
-      navigate("/", { replace: true });
+      navigate(resolvePostLoginPath(nextUser), { replace: true });
     } catch (parseError) {
       navigate("/", { replace: true });
     }

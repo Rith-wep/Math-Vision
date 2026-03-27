@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 import { ButtonSpinner } from "../components/ButtonSpinner.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
+import { resolvePostLoginPath } from "../utils/domainRouting.js";
 import { toKhmerErrorMessage } from "../utils/errorMessages.js";
 
 const GoogleIcon = () => (
@@ -123,20 +124,22 @@ export const LoginPage = () => {
     setIsSubmitting(true);
 
     try {
+      let authResponse;
+
       if (isSignup) {
-        await registerWithPassword({
+        authResponse = await registerWithPassword({
           displayName: fullName,
           email,
           password
         });
       } else {
-        await loginWithPassword({
+        authResponse = await loginWithPassword({
           email,
           password
         });
       }
 
-      navigate("/");
+      navigate(resolvePostLoginPath(authResponse?.user), { replace: true });
     } catch (error) {
       const nextError = axios.isAxiosError(error)
         ? toKhmerErrorMessage(

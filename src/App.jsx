@@ -1,8 +1,14 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { BookOpen, ScanSearch, Sigma } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 
+import { AdminLayout } from "./admin/layout/AdminLayout.jsx";
+import { AdminRouteGuard } from "./admin/layout/AdminRouteGuard.jsx";
+import { AdminDashboard } from "./admin/pages/AdminDashboard.jsx";
+import { DocLibraryManager } from "./admin/pages/DocLibraryManager.jsx";
+import { QcmManager } from "./admin/pages/QcmManager.jsx";
+import { SolutionLibraryManager } from "./admin/pages/SolutionLibraryManager.jsx";
 import { BottomNavigation } from "./components/BottomNavigation.jsx";
 import { DocsPage } from "./pages/DocsPage.jsx";
 import { AuthCallbackPage } from "./pages/AuthCallbackPage.jsx";
@@ -17,6 +23,7 @@ import { QcmPage } from "./pages/QcmPage.jsx";
 import { SolvePage } from "./pages/SolvePage.jsx";
 import { SolutionPage } from "./pages/SolutionPage.jsx";
 import { TermsOfServicePage } from "./pages/TermsOfServicePage.jsx";
+import { isAdminHost } from "./utils/domainRouting.js";
 
 const splashSymbols = [
   { symbol: "π", className: "left-[10%] top-[16%] text-5xl md:text-6xl", duration: 8.5, delay: 0.2 },
@@ -97,10 +104,33 @@ const ScrollToTop = () => {
   return null;
 };
 
+const HomeRoute = () => {
+  const location = useLocation();
+
+  if (isAdminHost() && location.pathname === "/") {
+    const storedAuth = (() => {
+      try {
+        return JSON.parse(window.localStorage.getItem("math-vision-auth") || "null");
+      } catch {
+        return null;
+      }
+    })();
+
+    if (storedAuth?.user?.role === "admin" && storedAuth?.token) {
+      return <Navigate to="/admin" replace />;
+    }
+
+    return <Navigate to="/login" replace />;
+  }
+
+  return <HomePage />;
+};
+
 const App = () => {
   const location = useLocation();
   const [showSplash, setShowSplash] = useState(true);
-  const shouldShowBottomNav = !["/login", "/auth/callback"].includes(location.pathname);
+  const shouldShowBottomNav =
+    !["/login", "/auth/callback"].includes(location.pathname) && !location.pathname.startsWith("/admin");
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -233,9 +263,17 @@ const App = () => {
       <ScrollToTop />
       <div className={shouldShowBottomNav ? "pb-24" : ""}>
         <Routes location={location} key={location.pathname + location.search}>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<HomeRoute />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
+          <Route element={<AdminRouteGuard />}>
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="qcm" element={<QcmManager />} />
+              <Route path="library" element={<DocLibraryManager />} />
+              <Route path="solutions" element={<SolutionLibraryManager />} />
+            </Route>
+          </Route>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/about-us" element={<AboutUsPage />} />
           <Route path="/profile" element={<ProfilePage />} />

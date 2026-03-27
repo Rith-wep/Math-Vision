@@ -1,4 +1,5 @@
 import axios from "axios";
+import { resolveFrontendAuthCallbackUrl } from "../utils/domainRouting.js";
 
 const resolveBackendBaseUrl = () => {
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -27,7 +28,13 @@ const backendBaseUrl = resolveBackendBaseUrl();
 
 export const authService = {
   getGoogleLoginUrl() {
-    return `${backendBaseUrl}/auth/google`;
+    const callbackUrl = resolveFrontendAuthCallbackUrl();
+
+    if (!callbackUrl) {
+      return `${backendBaseUrl}/auth/google`;
+    }
+
+    return `${backendBaseUrl}/auth/google?frontend_callback=${encodeURIComponent(callbackUrl)}`;
   },
 
   async login(payload) {
