@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Camera, Pencil } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
 
@@ -21,6 +21,18 @@ export const ProfilePage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+
+  useEffect(() => {
+    if (!successMessage) {
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setSuccessMessage("");
+    }, 900);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [successMessage]);
 
   if (!isAuthLoading && !isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -86,7 +98,7 @@ export const ProfilePage = () => {
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Profile</p>
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900">Your Profile</h1>
           <p className="mt-2 text-sm leading-6 text-slate-500">
-            Keep your display name and photo updated for a more personal Math-Vision experience.
+            រៀបចំឈ្មោះ និងរូបភាពរបស់អ្នកឱ្យមានភាពទាក់ទាញ ដើម្បីបទពិសោធន៍ថ្មីជាមួយ Math-Vision។
           </p>
 
           <div className="mt-8 flex justify-center">
@@ -138,7 +150,7 @@ export const ProfilePage = () => {
           ) : null}
 
           {successMessage ? (
-            <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-left text-sm text-emerald-700">
+            <div className="mt-4 rounded-2xl border border-[#22c55e] bg-[#22c55e] px-4 py-3 text-left text-sm font-medium text-white shadow-[0_10px_24px_rgba(34,197,94,0.18)]">
               {successMessage}
             </div>
           ) : null}
@@ -147,7 +159,7 @@ export const ProfilePage = () => {
             type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-[#22c55e] px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_32px_rgba(34,197,94,0.24)] transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-70"
+            className="mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-[#22c55e] px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_32px_rgba(34,197,94,0.24)] transition hover:bg-[#22c55e] disabled:cursor-not-allowed disabled:bg-[#22c55e] disabled:opacity-100"
           >
             {isSaving ? "Saving..." : "Save Changes"}
           </button>

@@ -17,11 +17,7 @@ export const isAdminHost = () => {
   const currentOrigin = window.location.origin.replace(/\/$/, "").toLowerCase();
   const currentHost = window.location.hostname.toLowerCase();
 
-  if (configuredAdminHosts.includes(currentOrigin) || configuredAdminHosts.includes(currentHost)) {
-    return true;
-  }
-
-  return currentHost.startsWith("admin.");
+  return configuredAdminHosts.includes(currentOrigin) || configuredAdminHosts.includes(currentHost);
 };
 
 export const resolveFrontendAuthCallbackUrl = () => {

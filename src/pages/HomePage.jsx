@@ -86,29 +86,46 @@ export const HomePage = () => {
         <ScanHeader />
 
         <main className="flex-1 px-4 py-4 md:px-5 lg:px-6">
-          <section className="premium-surface relative overflow-hidden rounded-[2rem] border border-green-100/80 bg-gradient-to-br from-white via-white to-green-50 px-7 py-6">
+          <section className="premium-surface relative overflow-hidden rounded-[2rem] border border-green-100/80 bg-[#d9fbe3] px-7 py-6">
+            <video
+              className="absolute inset-0 h-full w-full object-cover"
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="auto"
+              aria-hidden="true"
+            >
+              <source src="/media/home-banner.mp4" type="video/mp4" />
+            </video>
 
-            {/* GLASS OVERLAY */}
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/70 via-white/50 to-green-50/60 backdrop-blur-[1px]" />
+            <div className="pointer-events-none absolute inset-0 " />
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-[54%] bg-[radial-gradient(circle_at_top_left,_rgba(15,47,30,0.16),_transparent_54%),linear-gradient(90deg,rgba(15,47,30,0.14)_0%,rgba(15,47,30,0.06)_52%,transparent_100%)]" />
 
             {/* CONTENT */}
             <div className="relative">
 
               {/* Badge */}
-              <div className="inline-flex items-center gap-2 rounded-full border border-green-100 bg-white/90 px-3 py-1 text-[10px] font-medium text-green-700 shadow-[0_0_18px_rgba(34,197,94,0.15)] animate-pulse">
+              <div className="inline-flex items-center gap-2 rounded-full border border-green-100 bg-white/90 px-3 py-1 text-[10px] font-medium text-green-700 shadow-sm animate-pulse">
                 <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
                 AI Learning Hub
               </div>
 
               {/* Title */}
-              <h1 className="mt-3 max-w-[14ch] text-2xl sm:text-4xl font-bold leading-relaxed text-[#14532d]">
+              <h1
+                className="mt-2 max-w-[14ch] text-2xl sm:text-4xl font-bold leading-relaxed text-[#f5fff8]"
+                style={{ textShadow: "0 1px 3px rgba(15, 47, 30, 0.22)" }}
+              >
                 រៀនគណិតវិទ្យាកាន់តែងាយស្រួល
               </h1>
 
               {/* Description */}
-              <p className="mt-3 max-w-[34ch] text-sm leading-relaxed text-slate-600">
+              <p
+                className=" inline-block max-w-[34ch] rounded-2xl bg-[#0f2f1e]/24 px-3 py-2 text-bold text-sm leading-relaxed text-white"
+                style={{ textShadow: "0 1px 1px rgba(15, 47, 30, 0.16)" }}
+              >
                 ស្វែងរកដំណោះស្រាយលំហាត់ និងធនធានសិក្សាសម្បូរបែបជាមួយ{" "}
-                <span className="italic underline decoration-green-300 decoration-2 underline-offset-4">
+                <span className="italic underline decoration-green-100 decoration-2 underline-offset-4">
                   Math-Vision
                 </span>
                 ។
@@ -162,7 +179,7 @@ export const HomePage = () => {
           </section>
         </main>
 
-        <footer className="border-t mt-12 border-slate-100 px-4 py-4 md:px-5 lg:px-6">
+        <footer className="border-t mt- border-slate-100 px-4 py-4 md:px-5 lg:px-6">
           <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-medium text-slate-500">
             {/* <Link to="/about-us" className="transition hover:text-emerald-800 hover:underline">
               About Us
