@@ -9,7 +9,6 @@ const defaultFormState = {
   title: "",
   description: "",
   category: "PDF",
-  grade_level: "Grade 9",
   file: null,
   file_name: "",
   pdf_link: "",
@@ -86,7 +85,6 @@ export const DocLibraryManager = () => {
         title: formState.title.trim(),
         description: formState.description.trim(),
         category: formState.category.trim(),
-        grade_level: formState.grade_level,
         file: formState.file,
         pdf_link: formState.pdf_link.trim(),
         thumbnail_link: formState.thumbnail_link.trim()
@@ -97,7 +95,6 @@ export const DocLibraryManager = () => {
           title: payload.title,
           description: payload.description,
           category: payload.category,
-          grade_level: payload.grade_level,
           pdf_link: payload.pdf_link,
           thumbnail_link: payload.thumbnail_link
         });
@@ -149,7 +146,6 @@ export const DocLibraryManager = () => {
       title: document.title || "",
       description: document.description || "",
       category: document.category || "PDF",
-      grade_level: document.grade_level || "Grade 9",
       file: null,
       file_name: "",
       pdf_link: document.file_url || "",
@@ -267,21 +263,6 @@ export const DocLibraryManager = () => {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">Grade Level</label>
-              <select
-                value={formState.grade_level}
-                onChange={(event) => handleChange("grade_level", event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-emerald-300 focus:bg-white"
-              >
-                {["Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"].map((grade) => (
-                  <option key={grade} value={grade}>
-                    {grade}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
               <label className="mb-2 block text-sm font-semibold text-slate-700">PDF Link</label>
               <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 transition focus-within:border-emerald-300 focus-within:bg-white">
                 <Link2 className="h-4 w-4 shrink-0 text-slate-400" />
@@ -360,9 +341,6 @@ export const DocLibraryManager = () => {
                         <div className="mt-3 flex flex-wrap gap-2">
                           <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700">
                             {document.category || "PDF"}
-                          </span>
-                          <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700">
-                            {document.grade_level}
                           </span>
                           <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700">
                             {document.file_name}

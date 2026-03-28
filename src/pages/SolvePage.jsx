@@ -558,6 +558,25 @@ export const SolvePage = () => {
     navigate(`/solution?expression=${encodeURIComponent(expression)}`);
   };
 
+  const handleResetInput = () => {
+    setExpression("");
+    setEditIndex(null);
+    setErrorMessage("");
+    syncSelectionRange(0, 0);
+  };
+
+  const handleHandwritingRecognized = (nextValue) => {
+    const normalizedValue = sanitizeLatex(nextValue);
+
+    if (!normalizedValue) {
+      return;
+    }
+
+    setEditIndex(null);
+    setErrorMessage("");
+    updateExpression(normalizedValue, normalizedValue.length, normalizedValue.length);
+  };
+
   const searchPlaceholder = "បញ្ចូលសមីការគណិតវិទ្យា...";
 
   return (
@@ -756,7 +775,9 @@ export const SolvePage = () => {
           <MathKeyboard
             onKeyPress={handleKeyboardPress}
             onDelete={handleDelete}
+            onReset={handleResetInput}
             onSolve={handleSolve}
+            onHandwritingRecognized={handleHandwritingRecognized}
             onMoveLeft={handleMoveLeft}
             onMoveRight={handleMoveRight}
             canMoveLeft={cursorPosition > 0}

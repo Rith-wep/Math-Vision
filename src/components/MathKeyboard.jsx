@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Delete, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Delete, Languages, Pencil, RotateCcw, Trash2 } from "lucide-react";
+
+import { handwritingRecognitionService } from "../services/handwritingRecognitionService.js";
 
 const PLACEHOLDER_SYMBOL = "○";
 
@@ -202,12 +204,12 @@ const textKeyboardConfig = {
 };
 
 const utilityButtons = [
-  { id: "text", label: "abc", type: "label" },
   { id: "left", icon: ArrowLeft, type: "move-left" },
   { id: "right", icon: ArrowRight, type: "move-right" },
-  { id: "delete", icon: Delete, type: "delete" },
-  { id: "solve", icon: Sparkles, type: "solve" }
+  { id: "delete", icon: Delete, type: "delete" }
 ];
+
+const clampScale = (value) => Math.min(3, Math.max(0.5, value));
 
 const getKeyButtonClasses = (key) => {
   if (key.tone === "number") {
@@ -238,7 +240,7 @@ const getLabelClasses = (key) => {
 
   return `flex h-full w-full min-w-0 items-center justify-center px-1 text-center leading-tight ${baseSize} ${mathFont} ${textColor} ${
     key.badge
-      ? "mx-auto w-auto rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-[12px] font-semibold tracking-[0.08em] text-emerald-700"
+      ? "mx-auto w-auto rounded-full border border-[#22c55e]/15 bg-[#22c55e]/8 px-3 py-1 text-[12px] font-semibold tracking-[0.08em] text-[#22c55e]"
       : ""
   } ${key.textClass || ""}`.trim();
 };
@@ -246,9 +248,11 @@ const getLabelClasses = (key) => {
 export const MathKeyboard = ({
   onKeyPress,
   onDelete,
+  onReset,
   onSolve,
   onMoveLeft,
   onMoveRight,
+  onHandwritingRecognized,
   canMoveLeft = false,
   canMoveRight = false,
   disabled = false
@@ -256,8 +260,71 @@ export const MathKeyboard = ({
   const [inputMode, setInputMode] = useState("math");
   const [activeCategory, setActiveCategory] = useState("operators");
   const [isDesktop, setIsDesktop] = useState(false);
+  const [isDrawMode, setIsDrawMode] = useState(false);
+  const [strokes, setStrokes] = useState([]);
+  const [activeStroke, setActiveStroke] = useState(null);
+  const [isRecognizing, setIsRecognizing] = useState(false);
+  const [recognitionError, setRecognitionError] = useState("");
+  const [recognizedValue, setRecognizedValue] = useState("");
+  const [hasPendingDrawingChange, setHasPendingDrawingChange] = useState(false);
+  const [scale, setScale] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [showZoomControls, setShowZoomControls] = useState(false);
+  const canvasRef = useRef(null);
+  const recognitionRequestIdRef = useRef(0);
+  const activePointerIdRef = useRef(null);
+  const pointerPositionsRef = useRef(new Map());
   const activeConfig = inputMode === "text" ? textKeyboardConfig : categoryConfig[activeCategory];
   const keys = inputMode === "text" ? textKeyboardConfig.keys : keyboardLayouts[activeCategory];
+
+  const getWorldPoint = (clientX, clientY, canvas = canvasRef.current) => {
+    if (!canvas) {
+      return null;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+
+    return {
+      x: (clientX - rect.left - offset.x) / scale,
+      y: (clientY - rect.top - offset.y) / scale
+    };
+  };
+
+  const zoomAroundClientPoint = (nextScale, clientX, clientY, canvas = canvasRef.current) => {
+    if (!canvas) {
+      return;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    const clampedScale = clampScale(nextScale);
+    const worldPoint = getWorldPoint(clientX, clientY, canvas);
+
+    if (!worldPoint) {
+      return;
+    }
+
+    setScale(clampedScale);
+    setOffset({
+      x: clientX - rect.left - worldPoint.x * clampedScale,
+      y: clientY - rect.top - worldPoint.y * clampedScale
+    });
+  };
+
+  const resetCanvasView = () => {
+    setScale(1);
+    setOffset({ x: 0, y: 0 });
+  };
+
+  const zoomAroundCanvasCenter = (factor) => {
+    const canvas = canvasRef.current;
+
+    if (!canvas) {
+      return;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    zoomAroundClientPoint(scale * factor, rect.left + rect.width / 2, rect.top + rect.height / 2, canvas);
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -273,20 +340,317 @@ export const MathKeyboard = ({
     return () => mediaQuery.removeEventListener("change", syncDesktopState);
   }, []);
 
+  useEffect(() => {
+    const canvas = canvasRef.current;
+
+    if (!canvas || typeof window === "undefined") {
+      return undefined;
+    }
+
+    const syncCanvasSize = () => {
+      const rect = canvas.getBoundingClientRect();
+      const devicePixelRatio = window.devicePixelRatio || 1;
+      const nextWidth = Math.max(1, Math.round(rect.width * devicePixelRatio));
+      const nextHeight = Math.max(1, Math.round(rect.height * devicePixelRatio));
+
+      if (canvas.width !== nextWidth || canvas.height !== nextHeight) {
+        canvas.width = nextWidth;
+        canvas.height = nextHeight;
+      }
+
+      const context = canvas.getContext("2d");
+
+      if (!context) {
+        return;
+      }
+
+      context.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+      context.clearRect(0, 0, rect.width, rect.height);
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, rect.width, rect.height);
+      context.save();
+      context.translate(offset.x, offset.y);
+      context.scale(scale, scale);
+      context.lineCap = "round";
+      context.lineJoin = "round";
+      context.strokeStyle = "#059669";
+      context.lineWidth = 4 / scale;
+
+      const gridSpacing = 24;
+      const startX = Math.floor((-offset.x / scale) / gridSpacing) * gridSpacing - gridSpacing;
+      const endX = Math.ceil(((rect.width - offset.x) / scale) / gridSpacing) * gridSpacing + gridSpacing;
+      const startY = Math.floor((-offset.y / scale) / gridSpacing) * gridSpacing - gridSpacing;
+      const endY = Math.ceil(((rect.height - offset.y) / scale) / gridSpacing) * gridSpacing + gridSpacing;
+
+      context.fillStyle = "#d1fae5";
+      for (let x = startX; x <= endX; x += gridSpacing) {
+        for (let y = startY; y <= endY; y += gridSpacing) {
+          context.beginPath();
+          context.arc(x, y, 1 / scale, 0, Math.PI * 2);
+          context.fill();
+        }
+      }
+
+      [...strokes, ...(activeStroke ? [activeStroke] : [])].forEach((stroke) => {
+        if (!stroke.points.length) {
+          return;
+        }
+
+        context.beginPath();
+        context.moveTo(stroke.points[0].x, stroke.points[0].y);
+
+        if (stroke.points.length === 1) {
+          context.lineTo(stroke.points[0].x + 0.01, stroke.points[0].y + 0.01);
+        } else {
+          stroke.points.slice(1).forEach((point) => {
+            context.lineTo(point.x, point.y);
+          });
+        }
+
+        context.stroke();
+      });
+
+      context.restore();
+    };
+
+    syncCanvasSize();
+    window.addEventListener("resize", syncCanvasSize);
+
+    return () => window.removeEventListener("resize", syncCanvasSize);
+  }, [activeStroke, offset.x, offset.y, scale, strokes]);
+
+  const resetRecognitionState = () => {
+    setRecognitionError("");
+    setRecognizedValue("");
+  };
+
+  const getCanvasPoint = (event) => {
+    return getWorldPoint(event.clientX, event.clientY);
+  };
+
+  const handlePointerDown = (event) => {
+    if (disabled || isRecognizing) {
+      return;
+    }
+
+    const point = getCanvasPoint(event);
+
+    if (!point) {
+      return;
+    }
+
+    pointerPositionsRef.current.set(event.pointerId, {
+      clientX: event.clientX,
+      clientY: event.clientY
+    });
+
+    if (pointerPositionsRef.current.size > 1) {
+      if (activePointerIdRef.current !== null) {
+        commitActiveStroke();
+      }
+
+      activePointerIdRef.current = null;
+      return;
+    }
+
+    activePointerIdRef.current = event.pointerId;
+    resetRecognitionState();
+    setHasPendingDrawingChange(true);
+    canvasRef.current?.setPointerCapture?.(event.pointerId);
+    setActiveStroke({ id: `${Date.now()}-${event.pointerId}`, points: [point] });
+  };
+
+  const handlePointerMove = (event) => {
+    const previousPoint = pointerPositionsRef.current.get(event.pointerId);
+    pointerPositionsRef.current.set(event.pointerId, {
+      clientX: event.clientX,
+      clientY: event.clientY
+    });
+
+    const activePointers = [...pointerPositionsRef.current.entries()];
+
+    if (activePointers.length >= 2) {
+      setShowZoomControls(true);
+      const canvas = canvasRef.current;
+
+      if (!canvas) {
+        return;
+      }
+
+      const [[, firstPointer], [, secondPointer]] = activePointers;
+      const previousPointers = activePointers.map(([pointerId, pointer]) => {
+        if (pointerId === event.pointerId && previousPoint) {
+          return previousPoint;
+        }
+
+        return pointer;
+      });
+
+      const previousMidpoint = {
+        x: (previousPointers[0].clientX + previousPointers[1].clientX) / 2,
+        y: (previousPointers[0].clientY + previousPointers[1].clientY) / 2
+      };
+      const currentMidpoint = {
+        x: (firstPointer.clientX + secondPointer.clientX) / 2,
+        y: (firstPointer.clientY + secondPointer.clientY) / 2
+      };
+      const previousDistance = Math.hypot(
+        previousPointers[0].clientX - previousPointers[1].clientX,
+        previousPointers[0].clientY - previousPointers[1].clientY
+      );
+      const currentDistance = Math.hypot(
+        firstPointer.clientX - secondPointer.clientX,
+        firstPointer.clientY - secondPointer.clientY
+      );
+      const nextScale = previousDistance > 0 ? clampScale(scale * (currentDistance / previousDistance)) : scale;
+      const previousWorldPoint = getWorldPoint(previousMidpoint.x, previousMidpoint.y, canvas);
+
+      if (!previousWorldPoint) {
+        return;
+      }
+
+      const rect = canvas.getBoundingClientRect();
+      setScale(nextScale);
+      setOffset({
+        x: currentMidpoint.x - rect.left - previousWorldPoint.x * nextScale,
+        y: currentMidpoint.y - rect.top - previousWorldPoint.y * nextScale
+      });
+      return;
+    }
+
+    if (activePointerIdRef.current !== event.pointerId) {
+      return;
+    }
+
+    const point = getCanvasPoint(event);
+
+    if (!point) {
+      return;
+    }
+
+    setActiveStroke((currentStroke) =>
+      currentStroke
+        ? {
+            ...currentStroke,
+            points: [...currentStroke.points, point]
+          }
+        : currentStroke
+    );
+  };
+
+  const commitActiveStroke = () => {
+    setActiveStroke((currentStroke) => {
+      if (currentStroke?.points?.length) {
+        setStrokes((currentStrokes) => [...currentStrokes, currentStroke]);
+        setHasPendingDrawingChange(true);
+      }
+
+      return null;
+    });
+  };
+
+  const handlePointerUp = (event) => {
+    pointerPositionsRef.current.delete(event.pointerId);
+
+    if (activePointerIdRef.current !== event.pointerId) {
+      return;
+    }
+
+    activePointerIdRef.current = null;
+    canvasRef.current?.releasePointerCapture?.(event.pointerId);
+    commitActiveStroke();
+  };
+
+  const handleCanvasWheel = (event) => {
+    event.preventDefault();
+
+    setShowZoomControls(true);
+    const zoomDelta = event.deltaY < 0 ? 1.12 : 0.9;
+    zoomAroundClientPoint(scale * zoomDelta, event.clientX, event.clientY);
+  };
+
+  const handleUndoStroke = () => {
+    setActiveStroke(null);
+    setStrokes((currentStrokes) => {
+      const nextStrokes = currentStrokes.slice(0, -1);
+      setHasPendingDrawingChange(nextStrokes.length > 0);
+      return nextStrokes;
+    });
+    resetRecognitionState();
+  };
+
+  const handleClearCanvas = () => {
+    setActiveStroke(null);
+    activePointerIdRef.current = null;
+    pointerPositionsRef.current.clear();
+    setStrokes([]);
+    setIsRecognizing(false);
+    setHasPendingDrawingChange(false);
+    setShowZoomControls(false);
+    resetRecognitionState();
+  };
+
+  const handleConvertDrawing = async () => {
+    const canvas = canvasRef.current;
+
+    if (!canvas || (strokes.length === 0 && !activeStroke)) {
+      return;
+    }
+
+    const requestId = recognitionRequestIdRef.current + 1;
+    recognitionRequestIdRef.current = requestId;
+    setIsRecognizing(true);
+    setRecognitionError("");
+
+    try {
+      const result = await handwritingRecognitionService.recognize({
+        imageData: canvas.toDataURL("image/png"),
+        mimeType: "image/png",
+        width: canvas.width,
+        height: canvas.height,
+        strokeCount: strokes.length + (activeStroke ? 1 : 0)
+      });
+
+      if (recognitionRequestIdRef.current !== requestId) {
+        return;
+      }
+
+      const nextValue = (result?.latex || result?.text || "").trim();
+
+      if (nextValue) {
+        setRecognizedValue(nextValue);
+        setHasPendingDrawingChange(false);
+        onHandwritingRecognized?.(nextValue, result);
+      } else {
+        setRecognitionError("មិនទទួលបានលទ្ធផលពីការបម្លែងទេ។");
+      }
+    } catch (error) {
+      if (recognitionRequestIdRef.current !== requestId) {
+        return;
+      }
+
+      setRecognitionError(
+        error?.message || "មិនអាចបម្លែងការសរសេរដោយដៃបានទេ។ សូមព្យាយាមម្តងទៀត។"
+      );
+    } finally {
+      if (recognitionRequestIdRef.current === requestId) {
+        setIsRecognizing(false);
+      }
+    }
+  };
+
   const utilityState = useMemo(
     () => ({
       "move-left": { disabled: disabled || !canMoveLeft, onClick: onMoveLeft },
       "move-right": { disabled: disabled || !canMoveRight, onClick: onMoveRight },
       solve: { disabled, onClick: onSolve },
       delete: { disabled, onClick: onDelete },
-      label: {
-        disabled: false,
-        onClick: () => setInputMode((currentMode) => (currentMode === "math" ? "text" : "math"))
-      },
       placeholder: { disabled: false, onClick: undefined }
     }),
     [canMoveLeft, canMoveRight, disabled, onDelete, onMoveLeft, onMoveRight, onSolve]
   );
+  const hasDrawing = strokes.length > 0 || Boolean(activeStroke);
+  const shouldShowStatus = isRecognizing || Boolean(recognitionError) || Boolean(recognizedValue) || !hasDrawing;
 
   return (
     <motion.aside
@@ -309,85 +673,248 @@ export const MathKeyboard = ({
                   onClick={state?.onClick}
                   disabled={state?.disabled}
                   className={`flex items-center justify-center text-slate-900 transition duration-200 ${
-                    button.type === "label"
-                      ? "min-w-[3.5rem] justify-start rounded-lg border border-emerald-200 bg-white px-3 text-[17px] font-medium text-emerald-700 shadow-sm hover:border-emerald-300 hover:bg-white active:bg-white md:min-w-[4.25rem] md:justify-center"
-                      : button.type === "solve"
-                        ? "ml-2 h-10 min-w-[3.25rem] rounded-lg bg-emerald-500 px-3 text-white shadow-[0_8px_18px_rgba(16,185,129,0.24)] hover:bg-emerald-600 active:bg-emerald-700 md:min-w-[6.5rem] md:px-4"
-                      : button.type === "delete"
+                    button.type === "delete"
                         ? "ml-auto h-10 w-10 rounded-lg border border-slate-100 hover:bg-slate-50 active:bg-slate-100 md:h-11 md:w-11"
                         : "h-9 w-9 rounded-lg hover:bg-slate-50 active:bg-slate-100 md:h-10 md:w-10"
                   } ${state?.disabled ? "opacity-40" : ""}`}
                 >
-                  {button.type === "solve" ? (
-                    <span className="flex items-center gap-1.5 text-sm font-semibold">
-                      {Icon ? <Icon className="h-4 w-4" /> : null}
-                      <span>Solve</span>
-                    </span>
-                  ) : Icon ? (
-                    <Icon className="h-6 w-6 stroke-[1.8]" />
-                  ) : (
-                    <span>{inputMode === "math" ? button.label : "123"}</span>
-                  )}
+                  {Icon ? <Icon className="h-6 w-6 stroke-[1.8]" /> : null}
                 </button>
               );
             })}
+
+            <button
+              type="button"
+              onClick={onReset}
+              disabled={disabled}
+              className={`inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-100 text-slate-700 transition hover:bg-slate-50 active:bg-slate-100 md:h-11 md:w-11 ${
+                disabled ? "opacity-40" : ""
+              }`}
+              aria-label="Reset input"
+            >
+              <RotateCcw className="h-5 w-5 stroke-[1.8]" />
+            </button>
+
+            <button
+              type="button"
+              onClick={onSolve}
+              disabled={disabled}
+              className={`inline-flex h-10 min-w-[3.25rem] items-center justify-center rounded-lg bg-[#22c55e] px-4 text-xl font-semibold text-white shadow-[0_8px_18px_rgba(34,197,94,0.24)] transition hover:bg-[#16a34a] active:bg-[#15803d] md:h-11 md:min-w-[4rem] ${
+                disabled ? "opacity-40" : ""
+              }`}
+              aria-label="Solve"
+            >
+              <span>=</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsDrawMode((current) => !current);
+                resetRecognitionState();
+              }}
+              disabled={disabled}
+              className={`ml-1 inline-flex h-10 min-w-[7.75rem] items-center justify-center gap-2 rounded-lg border px-3 text-sm font-semibold transition md:h-11 ${
+                isDrawMode
+                  ? "border-[#22c55e] bg-[#22c55e] text-white shadow-[0_8px_18px_rgba(34,197,94,0.25)]"
+                  : "border-[#22c55e]/20 bg-[#22c55e]/8 text-[#22c55e] hover:bg-[#22c55e]/12"
+              } ${disabled ? "opacity-50" : ""}`}
+            >
+              <Pencil className="h-4 w-4" />
+              <span>គូសលំហាត់</span>
+            </button>
           </div>
         </div>
 
-        {inputMode === "math" ? (
+        {isDrawMode ? (
+          <div className="flex h-[min(21rem,calc(100vh-11.75rem))] min-h-[19.5rem] flex-col px-3.5 pb-4 pt-3 md:h-[min(24rem,calc(100vh-14.5rem))] md:min-h-[21.5rem] md:px-4 md:pb-5">
+            <div className="mb-2">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleConvertDrawing}
+                  disabled={disabled || isRecognizing || (strokes.length === 0 && !activeStroke)}
+                  className={`inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-lg bg-[#22c55e] px-3 text-sm font-semibold text-white transition hover:bg-[#16a34a] disabled:opacity-50 ${
+                    hasPendingDrawingChange && !isRecognizing ? "animate-pulse shadow-[0_0_0_6px_rgba(34,197,94,0.12)]" : ""
+                  }`}
+                >
+                  <Languages className="h-4 w-4" />
+                  <span>Convert</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleUndoStroke}
+                  disabled={disabled || strokes.length === 0}
+                  className="inline-flex h-9 min-w-9 items-center justify-center rounded-lg bg-[#22c55e]/8 px-2.5 text-sm font-semibold text-[#22c55e] transition hover:bg-[#22c55e]/12 disabled:opacity-50 md:min-w-[5.25rem] md:px-3"
+                  aria-label="Undo stroke"
+                >
+                  <RotateCcw className="h-4 w-4 md:hidden" />
+                  <span className="hidden md:inline">Undo</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClearCanvas}
+                  disabled={disabled || (strokes.length === 0 && !activeStroke)}
+                  className="inline-flex h-9 min-w-9 items-center justify-center rounded-lg bg-[#22c55e]/8 px-2.5 text-sm font-semibold text-[#22c55e] transition hover:bg-[#22c55e]/12 disabled:opacity-50 md:min-w-[5.25rem] md:px-3"
+                  aria-label="Clear canvas"
+                >
+                  <Trash2 className="h-4 w-4 md:hidden" />
+                  <span className="hidden md:inline">Clear</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="relative min-h-0 flex-1 overflow-hidden rounded-[1.75rem] border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-white p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+              <canvas
+                ref={canvasRef}
+                onWheel={handleCanvasWheel}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerUp}
+                onPointerLeave={handlePointerUp}
+                className={`block h-full min-h-[170px] w-full touch-none rounded-[1.2rem] bg-white md:min-h-[190px] ${
+                  isRecognizing ? "pointer-events-none blur-[1.5px]" : ""
+                }`}
+              />
+              {isRecognizing ? (
+                <div className="absolute inset-2 flex items-center justify-center rounded-[1.2rem] bg-white/60 backdrop-blur-sm">
+                  <div className="rounded-full border border-[#22c55e]/20 bg-white/90 px-4 py-2 text-sm font-semibold text-[#22c55e] shadow-sm">
+                    Scanning...
+                  </div>
+                </div>
+              ) : null}
+              {showZoomControls ? (
+                <div className="absolute bottom-4 right-4 flex items-center gap-1.5 rounded-full bg-white/50 p-1.5 shadow-sm backdrop-blur-sm">
+                  <button
+                    type="button"
+                    onClick={resetCanvasView}
+                    className="flex h-7 items-center justify-center rounded-full bg-white/50 px-2 text-[11px] font-semibold text-[#22c55e] transition hover:bg-white/70"
+                  >
+                    Reset
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => zoomAroundCanvasCenter(1 / 1.15)}
+                    className="flex h-7 w-7 items-center justify-center rounded-full bg-white/50 text-base font-semibold text-[#22c55e] transition hover:bg-white/70"
+                    aria-label="Zoom out"
+                  >
+                    -
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => zoomAroundCanvasCenter(1.15)}
+                    className="flex h-7 w-7 items-center justify-center rounded-full bg-white/50 text-base font-semibold text-[#22c55e] transition hover:bg-white/70"
+                    aria-label="Zoom in"
+                  >
+                    +
+                  </button>
+                </div>
+              ) : null}
+            </div>
+
+            {shouldShowStatus ? (
+              <div className="mt-2 min-h-[2.25rem] rounded-2xl border border-emerald-100 bg-emerald-50/70 px-3 py-2 text-xs text-emerald-700">
+                {isRecognizing ? (
+                  "\u1780\u17c6\u1796\u17bb\u1784\u1794\u1798\u17d2\u179b\u17c2\u1784\u1780\u17b6\u179a\u179f\u179a\u179f\u17c1\u179a\u178a\u17c4\u1799\u178a\u17c3..."
+                ) : recognitionError ? (
+                  <span className="inline-flex items-center gap-2">
+                    <span>{recognitionError}</span>
+                    {recognitionError.includes("404") ? (
+                      <button
+                        type="button"
+                        onClick={handleConvertDrawing}
+                        disabled={disabled || isRecognizing || (strokes.length === 0 && !activeStroke)}
+                        className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-[#22c55e]/20 bg-white text-[#22c55e] transition hover:bg-[#22c55e]/10 disabled:opacity-50"
+                        aria-label="Retry handwriting recognition"
+                      >
+                        <RotateCcw className="h-3.5 w-3.5" />
+                      </button>
+                    ) : null}
+                  </span>
+                ) : recognizedValue ? (
+                  `\u1794\u17b6\u1793\u1794\u1789\u17d2\u1785\u17bc\u179b: ${recognizedValue}`
+                ) : (
+                  "\u179f\u17bc\u1798\u179f\u179a\u179f\u17c1\u179a\u179b\u17c6\u17a0\u17b6\u178f\u17cb \u179a\u17bd\u1785\u1785\u17bb\u1785 Convert \u178a\u17be\u1798\u17d2\u1794\u17b8\u1791\u1791\u17bd\u179b\u1794\u17b6\u1793\u1785\u1798\u17d2\u179b\u17be\u1799"
+                )}
+              </div>
+            ) : null}
+          </div>
+        ) : (
           <div className="px-3.5 pb-2 pt-2">
             <div
               className="grid gap-2 md:gap-2.5"
-              style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}
+              style={{ gridTemplateColumns: inputMode === "math" ? "minmax(0, 0.9fr) repeat(4, minmax(0, 1fr))" : "minmax(0, 1fr)" }}
             >
-              {Object.entries(categoryConfig).map(([categoryKey, category]) => {
-                const isActive = activeCategory === categoryKey;
+              <button
+                type="button"
+                onClick={() => setInputMode((currentMode) => (currentMode === "math" ? "text" : "math"))}
+                className={`relative mt-1.5 flex h-9 min-w-0 items-center justify-center overflow-hidden rounded-lg border px-3 text-center font-sans transition duration-200 md:h-11 md:rounded-xl ${
+                  inputMode === "text"
+                    ? "border-[#22c55e]/20 bg-white text-[#22c55e] shadow-sm"
+                    : "border-[#22c55e]/20 bg-white text-[#22c55e] hover:border-[#22c55e]/30 hover:bg-white active:bg-white"
+                }`}
+              >
+                <span className="truncate text-[17px] font-medium sm:text-[17px]">
+                  {inputMode === "math" ? "abc" : "123"}
+                </span>
+                {inputMode === "text" || inputMode === "math" ? (
+                  <span className="absolute bottom-1 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-[#22c55e]" />
+                ) : null}
+              </button>
 
-                return (
-                  <button
-                    key={categoryKey}
-                    type="button"
-                    onClick={() => setActiveCategory(categoryKey)}
-                    className={`relative mt-1.5 flex h-9 min-w-0 items-center justify-center overflow-hidden rounded-lg border px-2 text-center font-sans transition duration-200 md:h-11 md:rounded-xl ${
-                      isActive
-                        ? "border-emerald-100 bg-white text-emerald-600 shadow-[0_8px_18px_rgba(16,185,129,0.10)]"
-                        : "border-slate-100 bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100"
-                    }`}
-                  >
-                    <span className="truncate text-[11px] font-bold tracking-[0.01em] sm:text-[13px]">
-                      {category.label}
-                    </span>
-                    {isActive ? (
-                      <span className="absolute bottom-1 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-emerald-600" />
-                    ) : null}
-                  </button>
-                );
-              })}
+              {inputMode === "math"
+                ? Object.entries(categoryConfig).map(([categoryKey, category]) => {
+                    const isActive = activeCategory === categoryKey;
+
+                    return (
+                      <button
+                        key={categoryKey}
+                        type="button"
+                        onClick={() => setActiveCategory(categoryKey)}
+                        className={`relative mt-1.5 flex h-9 min-w-0 items-center justify-center overflow-hidden rounded-lg border px-2 text-center font-sans transition duration-200 md:h-11 md:rounded-xl ${
+                          isActive
+                            ? "border-[#22c55e]/15 bg-white text-[#22c55e] shadow-[0_8px_18px_rgba(34,197,94,0.10)]"
+                            : "border-slate-100 bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100"
+                        }`}
+                      >
+                        <span className="truncate text-[11px] font-bold tracking-[0.01em] sm:text-[13px]">
+                          {category.label}
+                        </span>
+                        {isActive ? (
+                          <span className="absolute bottom-1 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-[#22c55e]" />
+                        ) : null}
+                      </button>
+                    );
+                  })
+                : null}
             </div>
           </div>
-        ) : null}
+        )}
 
-        <div
-          className="mt-1.5 grid gap-2 px-3.5 pb-4 md:gap-2.5 md:px-4 md:pb-5"
-          style={{ gridTemplateColumns: `repeat(${activeConfig.columns}, minmax(0, 1fr))` }}
-        >
-          {keys.map((key) => {
-            return (
-              <motion.button
-                key={`${activeCategory}-${key.label}-${key.value || key.template || "solve"}`}
-                type="button"
-                onClick={() => onKeyPress?.(key)}
-                disabled={disabled}
-                whileTap={{ scale: 0.98 }}
-                className={`aspect-square w-full overflow-hidden rounded-[1.2rem] border px-2 py-1.5 text-center transition duration-200 disabled:opacity-50 md:aspect-[1.05/0.82] md:rounded-[1.35rem] md:px-2.5 md:py-2 ${getKeyButtonClasses(
-                  key
-                )}`}
-              >
-                <span className={getLabelClasses(key)}>{key.label}</span>
-              </motion.button>
-            );
-          })}
-        </div>
+        {!isDrawMode ? (
+          <div
+            className="mt-1.5 grid gap-2 px-3.5 pb-4 md:gap-2.5 md:px-4 md:pb-5"
+            style={{ gridTemplateColumns: `repeat(${activeConfig.columns}, minmax(0, 1fr))` }}
+          >
+            {keys.map((key) => {
+              return (
+                <motion.button
+                  key={`${activeCategory}-${key.label}-${key.value || key.template || "solve"}`}
+                  type="button"
+                  onClick={() => onKeyPress?.(key)}
+                  disabled={disabled}
+                  whileTap={{ scale: 0.98 }}
+                  className={`aspect-square w-full overflow-hidden rounded-[1.2rem] border px-2 py-1.5 text-center transition duration-200 disabled:opacity-50 md:aspect-[1.05/0.82] md:rounded-[1.35rem] md:px-2.5 md:py-2 ${getKeyButtonClasses(
+                    key
+                  )}`}
+                >
+                  <span className={getLabelClasses(key)}>{key.label}</span>
+                </motion.button>
+              );
+            })}
+          </div>
+        ) : null}
       </div>
     </motion.aside>
   );

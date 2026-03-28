@@ -2,9 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
+  CalendarDays,
   Download,
   File,
   FileText,
+  HardDrive,
   Search,
   X
 } from "lucide-react";
@@ -17,6 +19,23 @@ import { toKhmerErrorMessage } from "../utils/errorMessages.js";
 
 const allCategoryLabel = "ទាំងអស់";
 const defaultCategories = [allCategoryLabel, "ពិជគណិត", "ធរណីមាត្រ", "វិភាគ"];
+
+const formatDocumentYear = (formula) => {
+  const rawValue = formula.published_year || formula.year || formula.createdAt || formula.updatedAt;
+
+  if (!rawValue) {
+    return "2024";
+  }
+
+  const parsedDate = new Date(rawValue);
+
+  if (!Number.isNaN(parsedDate.getTime())) {
+    return String(parsedDate.getFullYear());
+  }
+
+  const yearMatch = String(rawValue).match(/\b(19|20)\d{2}\b/);
+  return yearMatch ? yearMatch[0] : "2024";
+};
 
 const estimateFileSize = (formula) => {
   if (Number.isFinite(Number(formula.file_size)) && Number(formula.file_size) > 0) {
@@ -253,63 +272,109 @@ export const DocsPage = () => {
                   </button>
                 </motion.div>
               ) : (
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3">
                   {filteredDocuments.map((formula, index) => {
                     const documentType = getDocumentType(formula, index);
                     const isPdf = documentType === "pdf";
                     const Icon = isPdf ? FileText : File;
+                    const fileSizeLabel = estimateFileSize(formula);
+                    const yearLabel = formatDocumentYear(formula);
+                    const categoryLabel = getDocumentCategory(formula);
 
                     return (
                       <motion.article
                         key={formula._id || `${formula.title_kh}-${formula.grade}`}
-                        whileTap={{ scale: 0.95 }}
-                        className="rounded-3xl border border-slate-100 bg-white p-3 shadow-sm"
+                        whileHover={{ y: -4 }}
+                        whileTap={{ scale: 0.985 }}
+                        className="overflow-hidden rounded-[2rem] border border-emerald-100/80 bg-white shadow-[0_18px_34px_rgba(15,23,42,0.08)]"
                       >
                         <button
                           type="button"
                           onClick={() => handlePreviewOpen(formula)}
-                          className={`relative flex h-24 w-full items-center justify-center overflow-hidden rounded-2xl ${
+                          className={`relative block h-[15.5rem] w-full overflow-hidden text-left sm:h-[21rem] ${
                             formula.thumbnail_url
                               ? "bg-slate-100"
                               : isPdf
-                                ? "bg-red-50 text-red-500"
-                                : "bg-blue-50 text-blue-500"
+                                ? "bg-[linear-gradient(180deg,#d7e6d4_0%,#f8fafc_52%,#eef2ff_100%)]"
+                                : "bg-[linear-gradient(180deg,#dff3ea_0%,#f8fafc_50%,#e0ecff_100%)]"
                           }`}
                         >
                           {formula.thumbnail_url ? (
-                            <img
-                              src={formula.thumbnail_url}
-                              alt={formula.title_kh || "Document thumbnail"}
-                              className="h-full w-full bg-white object-contain p-1.5"
-                            />
+                            <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(180deg,#eff6f1_0%,#f8fafc_100%)] p-2 sm:p-3">
+                              <img
+                                src={formula.thumbnail_url}
+                                alt={formula.title_kh || "Document cover"}
+                                className="h-full w-full rounded-[1.4rem] border border-white/70 bg-white object-contain shadow-[0_12px_28px_rgba(15,23,42,0.14)]"
+                              />
+                            </div>
                           ) : (
-                            <Icon className="h-10 w-10" />
+                            <>
+                              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.95),transparent_32%),linear-gradient(180deg,rgba(255,255,255,0.18),rgba(15,23,42,0.18))]" />
+                              <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/70 via-white/10 to-transparent" />
+                              <div className="absolute inset-x-4 top-4 sm:inset-x-6 sm:top-6">
+                                <div className="max-w-[76%] text-left">
+                                  <p className="line-clamp-3 text-[1.05rem] font-black leading-[1.05] tracking-tight text-lime-300 drop-shadow-[0_2px_6px_rgba(15,23,42,0.35)] sm:text-[1.45rem]">
+                                    {formula.title_kh || "Math Vision Library"}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-3 sm:inset-x-6 sm:bottom-6 sm:gap-4">
+                                <div className="min-w-0">
+                                  <p className="line-clamp-2 text-xs font-bold leading-snug text-white drop-shadow-[0_2px_6px_rgba(15,23,42,0.5)] sm:text-sm">
+                                    {categoryLabel}
+                                  </p>
+                                  <p className="mt-1.5 line-clamp-3 text-[11px] leading-4 text-white/90 drop-shadow-[0_2px_6px_rgba(15,23,42,0.45)] sm:mt-2 sm:text-xs sm:leading-5">
+                                    {formula.description_kh || "Math resource for guided practice and revision."}
+                                  </p>
+                                </div>
+                                <div className="shrink-0 rounded-xl border border-black/10 bg-[#a6ad62] px-2.5 py-1.5 text-right shadow-[0_10px_22px_rgba(15,23,42,0.18)] sm:rounded-2xl sm:px-3 sm:py-2">
+                                  <p className="text-[9px] font-black uppercase tracking-[0.14em] text-[#4f4a21] sm:text-[11px]">Math</p>
+                                  <p className="text-[11px] font-black leading-none text-[#3f3a16] sm:text-[13px]">Vision</p>
+                                </div>
+                              </div>
+                              <div className="absolute bottom-5 left-4 h-10 w-[3px] bg-black/60 sm:bottom-7 sm:left-5 sm:h-12" />
+                              <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-950/50 via-slate-950/10 to-transparent" />
+                              <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/15 to-transparent" />
+                              <div className="absolute left-4 top-[71%] text-white/85 sm:left-5 sm:top-[72%]">
+                                <Icon className="h-7 w-7 sm:h-10 sm:w-10" />
+                              </div>
+                            </>
                           )}
-                          {formula.pdf_url ? (
-                            <span className="absolute bottom-2 right-2 rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold text-slate-700 shadow-sm">
-                              Preview
-                            </span>
-                          ) : null}
+                          <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/96 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.08em] text-rose-500 shadow-[0_8px_20px_rgba(255,255,255,0.28)] sm:right-4 sm:top-4 sm:px-3 sm:text-[11px]">
+                            <span className="inline-block h-2.5 w-2.5 rounded-[4px] bg-rose-500" />
+                            {isPdf ? "PDF" : "DOC"}
+                          </span>
                         </button>
 
-                        <div className="mt-3 min-h-[5rem]">
-                          <h2 className="line-clamp-2 text-sm font-bold leading-snug text-slate-900">
+                        <div className="space-y-3 px-3.5 pb-3.5 pt-3.5 sm:px-4 sm:pb-4 sm:pt-4">
+                          <div>
+                          <h2 className="line-clamp-2 text-[14px] font-black leading-snug text-slate-900 sm:text-[15px]">
                             {formula.title_kh}
                           </h2>
-                          <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-slate-500">
+                          <p className="mt-1.5 line-clamp-2 text-[12px] leading-5 text-slate-500 sm:mt-2 sm:text-[13px] sm:leading-6">
                             {formula.description_kh || "No description available."}
                           </p>
-                          <p className="mt-1.5 text-xs text-slate-400">{estimateFileSize(formula)}</p>
-                        </div>
+                          <p className="mt-1.5 line-clamp-2 text-[11px] leading-5 text-slate-400 sm:mt-2 sm:text-[12px] sm:leading-6">
+                            {formula.category || categoryLabel}
+                          </p>
+                          </div>
 
-                        <button
-                          type="button"
-                          onClick={() => handleDownload(formula)}
-                          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-green-800 px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
-                        >
-                          <Download className="h-4 w-4" />
-                          <span>Download</span>
-                        </button>
+                          <div className="flex items-center justify-between gap-2 border-t border-slate-100 pt-3 text-[11px] text-slate-400 sm:gap-4 sm:text-xs">
+                            <div className="inline-flex items-center gap-1.5">
+                              <CalendarDays className="h-3.5 w-3.5" />
+                              <span>{yearLabel}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleDownload(formula)}
+                              className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-700 transition hover:bg-emerald-100 sm:text-xs"
+                              aria-label={`Download ${formula.title_kh || "document"}`}
+                            >
+                              <Download className="h-3.5 w-3.5" />
+                              <span>{fileSizeLabel}</span>
+                            </button>
+                          </div>
+                        </div>
                       </motion.article>
                     );
                   })}

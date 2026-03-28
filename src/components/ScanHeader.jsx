@@ -60,6 +60,10 @@ export const ScanHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isHeaderHidden, setIsHeaderHidden] = useState(false);
   const hasProfileUpdate = true;
+  const displayName = user?.displayName?.trim() || "Math Vision Student";
+  const avatarUrl =
+    user?.avatar?.trim() ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=dcfce7&color=166534&size=256`;
 
   useEffect(() => {
     const handlePointerDown = (event) => {
@@ -124,8 +128,8 @@ export const ScanHeader = () => {
             >
               <div className="relative">
                 <img
-                  src={user.avatar}
-                  alt={user.displayName}
+                  src={avatarUrl}
+                  alt={displayName}
                   className="h-9 w-9 rounded-full object-cover"
                   referrerPolicy="no-referrer"
                 />

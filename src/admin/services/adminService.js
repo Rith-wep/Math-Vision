@@ -127,7 +127,6 @@ export const adminService = {
     formData.append("title", payload.title);
     formData.append("description", payload.description);
     formData.append("category", payload.category);
-    formData.append("grade_level", payload.grade_level);
     if (payload.pdf_link) {
       formData.append("pdf_link", payload.pdf_link);
     }
