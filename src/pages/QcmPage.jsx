@@ -114,13 +114,40 @@ const QuestionSkeleton = () => (
 const khmerCharacterPattern = /[\u1780-\u17FF]/;
 const escapedLatexPattern = /\\[a-zA-Z]+|\\[{}[\]]/;
 const plainMathPattern =
-  /(?:[A-Za-z0-9(){}\[\]^_]+(?:\s*(?:[+\-*/=^]|≤|≥|<|>|±)\s*[A-Za-z0-9(){}\[\]^_]+)+)|(?:[A-Za-z]\s*∈\s*[({[]?.+[)}\]]?)/;
+  /(?:[A-Za-z0-9(){}\[\]^_]+(?:\s*(?:[+\-*/=^]|<|>)\s*[A-Za-z0-9(){}\[\]^_]+)+)|(?:[A-Za-z]\s*[({[]?.+[)}\]]?)/;
 
-const isMathLikeExpression = (value = "", displayMode = "text") => {
+const stripMathDelimiters = (value = "") => {
   const normalizedValue = typeof value === "string" ? value.trim() : "";
 
   if (!normalizedValue) {
+    return "";
+  }
+
+  if (
+    (normalizedValue.startsWith("$$") && normalizedValue.endsWith("$$")) ||
+    (normalizedValue.startsWith("\\(") && normalizedValue.endsWith("\\)")) ||
+    (normalizedValue.startsWith("\\[") && normalizedValue.endsWith("\\]"))
+  ) {
+    return normalizedValue.slice(2, -2).trim();
+  }
+
+  if (normalizedValue.startsWith("$") && normalizedValue.endsWith("$")) {
+    return normalizedValue.slice(1, -1).trim();
+  }
+
+  return normalizedValue;
+};
+
+const isMathLikeExpression = (value = "", displayMode = "text") => {
+  const rawValue = typeof value === "string" ? value.trim() : "";
+  const normalizedValue = stripMathDelimiters(rawValue);
+
+  if (!normalizedValue) {
     return false;
+  }
+
+  if (rawValue.startsWith("$") || rawValue.startsWith("\\(") || rawValue.startsWith("\\[")) {
+    return true;
   }
 
   if (displayMode === "latex") {
@@ -145,14 +172,16 @@ const renderQuizContent = (value, displayMode = "text", inline = false) => {
     return null;
   }
 
+  const normalizedValue = stripMathDelimiters(value);
+
   if (!isMathLikeExpression(value, displayMode)) {
     return <span>{value}</span>;
   }
 
   return inline ? (
-    <InlineMath math={value} renderError={() => renderKatexFallback(value)} />
+    <InlineMath math={normalizedValue} renderError={() => renderKatexFallback(value)} />
   ) : (
-    <BlockMath math={value} renderError={() => renderKatexFallback(value)} />
+    <BlockMath math={normalizedValue} renderError={() => renderKatexFallback(value)} />
   );
 };
 
@@ -167,7 +196,7 @@ const renderExplanationContent = (value = "") => {
   const segments = [];
   let lastIndex = 0;
 
-  value.replace(explanationMathPattern, (match, _group, offset) => {
+  value.replace(explanationMathPattern, (match, _group1, _group2, offset) => {
     if (offset > lastIndex) {
       segments.push({
         type: "text",
@@ -236,6 +265,7 @@ export const QcmPage = () => {
   const currentQuestions = questionsPayload?.questions ?? EMPTY_QUESTIONS;
   const currentQuestion = currentQuestions[currentIndex] ?? null;
   const correctOption = currentQuestion?.options.find((option) => option.isCorrect) ?? null;
+  const explanationText = currentQuestion?.explanationKh?.trim() || "";
   const isCurrentAnswerCorrect = selectedOptionId === correctOption?.id;
   const isLastQuestion = currentQuestions.length > 0 && currentIndex === currentQuestions.length - 1;
   const progressValue = currentQuestions.length
@@ -903,7 +933,16 @@ export const QcmPage = () => {
                             (correctOption?.displayMode || "text") !== "latex"
                           )}
                         </div>
-                        <p>{renderExplanationContent(currentQuestion.explanationKh)}</p>
+                        <div className="space-y-1">
+                          <p className="font-semibold text-white">ការពន្យល់:</p>
+                          <div className="rounded-2xl bg-white/8 px-3 py-2 text-white/95">
+                            {explanationText ? (
+                              renderExplanationContent(explanationText)
+                            ) : (
+                              <p>សូមពិនិត្យចម្លើយត្រឹមត្រូវខាងលើ ហើយសាកល្បងម្តងទៀត។</p>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>
