@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import FingerprintJS from "@fingerprintjs/fingerprintjs";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, LockKeyhole, Mail, UserRound } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -109,9 +110,48 @@ export const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
+  const [deviceId, setDeviceId] = useState("");
+  const [toastMessage, setToastMessage] = useState("");
 
   const isSignup = mode === "signup";
   const passwordStrength = useMemo(() => getPasswordStrength(password), [password]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadFingerprint = async () => {
+      try {
+        const fp = await FingerprintJS.load();
+        const result = await fp.get();
+
+        if (isMounted) {
+          setDeviceId(result.visitorId || "");
+        }
+      } catch {
+        if (isMounted) {
+          setDeviceId("");
+        }
+      }
+    };
+
+    loadFingerprint();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!toastMessage) {
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setToastMessage("");
+    }, 3200);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [toastMessage]);
 
   const cardTitle = isSignup ? "បង្កើតគណនីថ្មី" : "ស្វាគមន៍មកកាន់ Math Vision";
   const helperText = isSignup
@@ -121,6 +161,7 @@ export const LoginPage = () => {
   const handleEmailSubmit = async (event) => {
     event.preventDefault();
     setFormError("");
+    setToastMessage("");
     setIsSubmitting(true);
 
     try {
@@ -130,7 +171,8 @@ export const LoginPage = () => {
         authResponse = await registerWithPassword({
           displayName: fullName,
           email,
-          password
+          password,
+          deviceId
         });
       } else {
         authResponse = await loginWithPassword({
@@ -141,9 +183,21 @@ export const LoginPage = () => {
 
       navigate(resolvePostLoginPath(authResponse?.user), { replace: true });
     } catch (error) {
+      const rawMessage = axios.isAxiosError(error)
+        ? error.response?.data?.message || error.message || "Authentication failed. Please try again."
+        : "Authentication failed. Please try again.";
+
+      if (
+        axios.isAxiosError(error) &&
+        error.response?.status === 403 &&
+        rawMessage.includes("Limit reached: This device already has 2 accounts.")
+      ) {
+        setToastMessage("ឧបករណ៍នេះបានបង្កើតគណនីអស់កូតាហើយ (អតិបរមា 2 គណនី)។");
+      }
+
       const nextError = axios.isAxiosError(error)
         ? toKhmerErrorMessage(
-            error.response?.data?.message || error.message || "Authentication failed. Please try again."
+            rawMessage
           )
         : toKhmerErrorMessage("Authentication failed. Please try again.");
 
@@ -163,6 +217,20 @@ export const LoginPage = () => {
       style={{ fontFamily: '"Koh Santepheap", "Kantumruy Pro", sans-serif' }}
     >
       <div className="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-[450px] flex-col justify-center">
+        <AnimatePresence>
+          {toastMessage ? (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 shadow-sm"
+            >
+              {toastMessage}
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+
         <button
           type="button"
           onClick={() => navigate(-1)}

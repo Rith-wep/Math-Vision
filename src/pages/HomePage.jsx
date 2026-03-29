@@ -14,6 +14,7 @@ const homeCards = [
     subtitle: "ដោះស្រាយសមីការ និងលំហាត់គណិតវិទ្យា",
     icon: Calculator,
     accent: "from-green-500 to-emerald-500",
+    glow: "rgba(16, 185, 129, 0.35)",
     actionLabel: "Open Solver",
     to: "/solve"
   },
@@ -23,6 +24,7 @@ const homeCards = [
     subtitle: "ស្វែងរករូបមន្ត មេរៀន និងឯកសារសិក្សា",
     icon: BookOpenText,
     accent: "from-emerald-500 to-lime-500",
+    glow: "rgba(132, 204, 22, 0.32)",
     actionLabel: "Browse Docs",
     to: "/docs"
   },
@@ -32,6 +34,7 @@ const homeCards = [
     subtitle: "ហាត់សំណួរ QCM និងវាស់កម្រិតចំណេះដឹងគណិតវិទ្យា",
     icon: BookOpenCheck,
     accent: "from-emerald-500 to-green-600",
+    glow: "rgba(34, 197, 94, 0.34)",
     actionLabel: "Open Quiz",
     to: "/qcm"
   },
@@ -41,6 +44,7 @@ const homeCards = [
     subtitle: "ថតរូបលំហាត់ ហើយបញ្ជូនទៅ AI ដើម្បីដោះស្រាយ",
     icon: Camera,
     accent: "from-green-400 to-green-600",
+    glow: "rgba(34, 197, 94, 0.3)",
     actionLabel: "Scan Now"
   }
 ];
@@ -151,9 +155,19 @@ export const HomePage = () => {
                 >
                   <div className="flex items-start gap-2.5">
                     <div
-                      className={`green-soft-glow flex h-11 w-11 shrink-0 items-center justify-center rounded-[1.15rem] bg-gradient-to-br ${card.accent} text-white`}
+                      className={`home-card-icon green-soft-glow relative flex h-12 w-12 shrink-0 items-center justify-center rounded-[1.25rem] bg-gradient-to-br ${card.accent} text-white`}
+                      style={{
+                        boxShadow: `0 18px 32px ${card.glow}, 0 10px 22px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255,255,255,0.72)`
+                      }}
                     >
-                      <Icon className="h-5 w-5" />
+                      <span className="pointer-events-none absolute inset-x-2 top-1.5 h-2.5 rounded-full bg-white/30 blur-[1px]" />
+                      <span
+                        className="pointer-events-none absolute inset-x-1.5 bottom-1 h-3 rounded-full blur-md"
+                        style={{ backgroundColor: card.glow }}
+                      />
+                      <span className="home-card-icon-glyph relative flex h-8.5 w-8.5 items-center justify-center rounded-2xl bg-white/16 backdrop-blur-[1px]">
+                        <Icon className="h-5 w-5 drop-shadow-xl" />
+                      </span>
                     </div>
 
                     <div className="min-w-0 flex-1">
@@ -211,3 +225,4 @@ export const HomePage = () => {
     </motion.div>
   );
 };
+

@@ -117,6 +117,15 @@ input {
     0 1px 0 rgba(255, 255, 255, 0.98) inset;
 }
 
+.home-card-icon {
+  animation: home-card-levitate 3.6s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.home-card-icon-glyph {
+  animation: home-card-glyph-float 3.6s ease-in-out infinite;
+}
+
 @keyframes ai-solve-pulse {
   0% {
     box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.35), 0 12px 30px rgba(34, 197, 94, 0.22);
@@ -162,5 +171,33 @@ input {
   100% {
     top: 6%;
     opacity: 0.2;
+  }
+}
+
+@keyframes home-card-levitate {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+
+  50% {
+    transform: translateY(-4px) rotate(-1.5deg) scale(1.03);
+  }
+
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+}
+
+@keyframes home-card-glyph-float {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(-1px) scale(1.06);
+  }
+
+  100% {
+    transform: translateY(0) scale(1);
   }
 }

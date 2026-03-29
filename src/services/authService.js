@@ -48,7 +48,7 @@ export const authService = {
   },
 
   async register(payload) {
-    const response = await axios.post(`${backendBaseUrl}/auth/register`, payload, {
+    const response = await axios.post(`${backendBaseUrl}/auth/signup`, payload, {
       headers: {
         "Content-Type": "application/json"
       }

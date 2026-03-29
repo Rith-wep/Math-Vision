@@ -836,7 +836,16 @@ export const UploadPhoto = ({ open, onClose, onScanComplete }) => {
                   className="flex items-center justify-center gap-2 rounded-2xl border border-[#22c55e] bg-[#22c55e] px-4 py-3 text-sm font-semibold text-white shadow-none transition-colors hover:border-[#16a34a] hover:bg-[#16a34a] disabled:cursor-not-allowed disabled:border-emerald-300 disabled:bg-emerald-300"
                 >
                   <Camera className="h-4 w-4" />
-                  <span>{isProcessing ? "Scanning..." : selectedFile ? "Crop & Solve" : "Scan"}</span>
+                  {isProcessing ? (
+                    <span>Scanning...</span>
+                  ) : selectedFile ? (
+                    <>
+                      <span className="sm:hidden">Solve</span>
+                      <span className="hidden sm:inline">Crop & Solve</span>
+                    </>
+                  ) : (
+                    <span>Scan</span>
+                  )}
                 </button>
 
                 <button

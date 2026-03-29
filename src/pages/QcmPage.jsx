@@ -186,7 +186,7 @@ const renderQuizContent = (value, displayMode = "text", inline = false) => {
 };
 
 const explanationMathPattern =
-  /(\\[A-Za-z]+(?:\s*\{[^{}]*\}|\s*\[[^[\]]*\]|\s*[-+=*/^_()0-9A-Za-z.,])*)|([A-Za-z0-9(){}\[\]^_\\]+(?:\s*(?:[+\-*/=^]|≤|≥|<|>|±)\s*[A-Za-z0-9(){}\[\]^_\\]+)+)/g;
+  /(\$\$[^$]+\$\$|\$[^$]+\$|\\\([^)]*\\\)|\\\[[^\]]*\\\]|\\[A-Za-z]+(?:\s*\{[^{}]*\}|\s*\[[^[\]]*\]|\s*[-+=*/^_()0-9A-Za-z.,])*)|([A-Za-z0-9(){}\[\]^_\\]+(?:\s*(?:[+\-*/=^]|<|>)\s*[A-Za-z0-9(){}\[\]^_\\]+)+)/g;
 
 const renderExplanationContent = (value = "") => {
   if (!value) {
@@ -828,7 +828,7 @@ export const QcmPage = () => {
                   <div className="mt-3 space-y-2">
                     <p className="text-sm font-medium text-slate-500">សំណួរគណិតវិទ្យា</p>
                     <h1 className="text-[1.35rem] font-bold leading-relaxed text-slate-900">
-                      {currentQuestion.promptKh}
+                      {renderExplanationContent(currentQuestion.promptKh)}
                     </h1>
                     <div className="rounded-[1.5rem] border border-green-100 bg-green-50/70 px-4 py-3 text-center">
                       <div className="overflow-x-auto text-base text-slate-900">
