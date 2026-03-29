@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Eye, EyeOff, FileText, Link2, Pencil, Trash2, UploadCloud, X } from "lucide-react";
+import { Eye, EyeOff, FileText, Paperclip, Pencil, Trash2, UploadCloud, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { ButtonSpinner } from "../../components/ButtonSpinner.jsx";
@@ -12,6 +12,8 @@ const defaultFormState = {
   file: null,
   file_name: "",
   pdf_link: "",
+  thumbnail_file: null,
+  thumbnail_file_name: "",
   thumbnail_link: ""
 };
 
@@ -60,20 +62,14 @@ export const DocLibraryManager = () => {
     event.preventDefault();
 
     const hasFile = Boolean(formState.file);
-    const hasPdfLink = Boolean(formState.pdf_link.trim());
+    const hasExistingFile = Boolean(editingDocumentId && formState.file_name);
 
-    if (!formState.title.trim() || !formState.description.trim() || !formState.category || (!hasFile && !hasPdfLink)) {
+    if (!formState.title.trim() || !formState.description.trim() || !formState.category || (!hasFile && !hasExistingFile)) {
       setToast({
         type: "error",
-        message: "Please complete the document details, category, and provide a PDF file or PDF link before uploading."
-      });
-      return;
-    }
-
-    if (hasFile && hasPdfLink) {
-      setToast({
-        type: "error",
-        message: "Choose either a PDF file upload or a PDF link."
+        message: editingDocumentId
+          ? "Please complete the document details, category, and keep or choose a PDF file before saving."
+          : "Please complete the document details, category, and choose a PDF file before uploading."
       });
       return;
     }
@@ -86,18 +82,11 @@ export const DocLibraryManager = () => {
         description: formState.description.trim(),
         category: formState.category.trim(),
         file: formState.file,
-        pdf_link: formState.pdf_link.trim(),
-        thumbnail_link: formState.thumbnail_link.trim()
+        thumbnail_file: formState.thumbnail_file
       };
 
       if (editingDocumentId) {
-        await adminService.updateDocument(editingDocumentId, {
-          title: payload.title,
-          description: payload.description,
-          category: payload.category,
-          pdf_link: payload.pdf_link,
-          thumbnail_link: payload.thumbnail_link
-        });
+        await adminService.updateDocument(editingDocumentId, payload);
       } else {
         await adminService.uploadDocument(payload);
       }
@@ -147,8 +136,10 @@ export const DocLibraryManager = () => {
       description: document.description || "",
       category: document.category || "PDF",
       file: null,
-      file_name: "",
-      pdf_link: document.file_url || "",
+      file_name: document.file_name || "",
+      pdf_link: "",
+      thumbnail_file: null,
+      thumbnail_file_name: document.thumbnail_url ? "Current thumbnail kept" : "",
       thumbnail_link: document.thumbnail_url || ""
     });
     setToast({ type: "", message: "" });
@@ -205,7 +196,7 @@ export const DocLibraryManager = () => {
           <div>
             <h1 className="text-2xl font-black text-slate-900">Manage Study Documents</h1>
             <p className="mt-2 text-sm leading-relaxed text-slate-500">
-              Add PDF resource links and manage which files are visible in the Math Vision library.
+              Upload PDF resources to Cloudinary and manage which files are visible in the Math Vision library.
             </p>
             {editingDocumentId ? (
               <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
@@ -263,37 +254,61 @@ export const DocLibraryManager = () => {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">PDF Link</label>
-              <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 transition focus-within:border-emerald-300 focus-within:bg-white">
-                <Link2 className="h-4 w-4 shrink-0 text-slate-400" />
+              <label className="mb-2 block text-sm font-semibold text-slate-700">PDF File</label>
+              <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:border-emerald-300 hover:bg-white">
+                <Paperclip className="h-4 w-4 shrink-0 text-slate-400" />
+                <span className={`truncate text-sm ${formState.file_name ? "text-slate-700" : "text-slate-400"}`}>
+                  {formState.file_name || "Choose a PDF file to upload to Cloudinary"}
+                </span>
                 <input
-                  type="url"
-                  value={formState.pdf_link}
-                  onChange={(event) =>
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  onChange={(event) => {
+                    const nextFile = event.target.files?.[0] || null;
                     setFormState((current) => ({
                       ...current,
-                      pdf_link: event.target.value,
-                      file: null,
-                      file_name: ""
-                    }))
-                  }
-                  className="w-full bg-transparent text-sm text-slate-700 outline-none"
-                  placeholder="https://example.com/lesson.pdf"
+                      file: nextFile,
+                      file_name: nextFile?.name || "",
+                      pdf_link: ""
+                    }));
+                  }}
+                  className="hidden"
                 />
-              </div>
-              <p className="mt-2 text-xs text-slate-500">Paste the hosted PDF URL that students should open from the current library UI.</p>
+              </label>
+              <p className="mt-2 text-xs text-slate-500">
+                {editingDocumentId
+                  ? "Choose a new PDF only if you want to replace the current Cloudinary file."
+                  : "Upload a PDF and we will store it in Cloudinary for the student library."}
+              </p>
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-700">Thumbnail Link</label>
-              <input
-                type="url"
-                value={formState.thumbnail_link}
-                onChange={(event) => handleChange("thumbnail_link", event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-emerald-300 focus:bg-white"
-                placeholder="https://example.com/thumbnail.jpg"
-              />
-              <p className="mt-2 text-xs text-slate-500">Optional image preview URL stored with the document.</p>
+              <label className="mb-2 block text-sm font-semibold text-slate-700">Thumbnail Image</label>
+              <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:border-emerald-300 hover:bg-white">
+                <Paperclip className="h-4 w-4 shrink-0 text-slate-400" />
+                <span className={`truncate text-sm ${formState.thumbnail_file_name ? "text-slate-700" : "text-slate-400"}`}>
+                  {formState.thumbnail_file_name || "Choose an image file for the document thumbnail"}
+                </span>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif,image/avif,image/heic,image/heif,image/bmp"
+                  onChange={(event) => {
+                    const nextFile = event.target.files?.[0] || null;
+                    setFormState((current) => ({
+                      ...current,
+                      thumbnail_file: nextFile,
+                      thumbnail_file_name: nextFile?.name || "",
+                      thumbnail_link: ""
+                    }));
+                  }}
+                  className="hidden"
+                />
+              </label>
+              <p className="mt-2 text-xs text-slate-500">
+                {editingDocumentId
+                  ? "Choose a new image only if you want to replace the current Cloudinary thumbnail."
+                  : "Optional image thumbnail stored in Cloudinary with the document."}
+              </p>
             </div>
 
             <button

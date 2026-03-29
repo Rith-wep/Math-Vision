@@ -15,8 +15,12 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { MathKeyboard } from "../components/MathKeyboard.jsx";
+import { QuotaStatusCard } from "../components/QuotaStatusCard.jsx";
 import { ScanHeader } from "../components/ScanHeader.jsx";
+import { SubscriptionModal } from "../components/SubscriptionModal.jsx";
 import { UploadPhoto } from "../components/UploadPhoto.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
+import { formulaService } from "../services/formulaService.js";
 import { toKhmerErrorMessage } from "../utils/errorMessages.js";
 
 const featureBadges = [
@@ -346,6 +350,7 @@ const findPreviousPlaceholder = (value, fromIndex) => value.lastIndexOf(PLACEHOL
 export const SolvePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAuthenticated, user } = useAuth();
   const inputSectionRef = useRef(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [expression, setExpression] = useState("");
@@ -353,6 +358,8 @@ export const SolvePage = () => {
   const [editIndex, setEditIndex] = useState(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isInputReady, setIsInputReady] = useState(false);
+  const [solveAccess, setSolveAccess] = useState(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const isLoadingSuggestions = false;
   const formulaSuggestions = [];
 
@@ -422,6 +429,37 @@ export const SolvePage = () => {
       );
     };
   }, [isInputReady]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadSolveAccess = async () => {
+      if (!isAuthenticated || user?.role === "admin") {
+        if (isMounted) {
+          setSolveAccess(null);
+        }
+        return;
+      }
+
+      try {
+        const summary = await formulaService.getSolveAccessStatus();
+
+        if (isMounted) {
+          setSolveAccess(summary);
+        }
+      } catch {
+        if (isMounted) {
+          setSolveAccess(null);
+        }
+      }
+    };
+
+    loadSolveAccess();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, user?.role]);
 
   useEffect(() => {
     if (!isInputReady || !inputSectionRef.current) {
@@ -554,6 +592,11 @@ export const SolvePage = () => {
       return;
     }
 
+    if (solveAccess?.isBlocked) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
     setErrorMessage("");
     navigate(`/solution?expression=${encodeURIComponent(expression)}`);
   };
@@ -627,6 +670,18 @@ export const SolvePage = () => {
                 );
               })}
             </div>
+
+            <QuotaStatusCard
+              solveAccess={solveAccess}
+              statusText={
+                solveAccess?.isBlocked
+                  ? "Daily free solves are finished."
+                  : solveAccess?.nextMode === "answer_only"
+                    ? "ឱកាសសិក្សាបន្ទាប់របស់អ្នក នឹងបង្ហាញត្រឹមតែលទ្ធផលចុងក្រោយប៉ុណ្ណោះ។"
+                    : "អ្នកនៅមានឱកាសទទួលបានការពន្យល់លម្អិតពី AI សម្រាប់ថ្ងៃនេះ។"
+              }
+              onUpgrade={() => setShowUpgradeModal(true)}
+            />
 
             <div
               ref={inputSectionRef}
@@ -799,6 +854,8 @@ export const SolvePage = () => {
             );
           }}
         />
+
+        <SubscriptionModal open={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
       </div>
     </motion.div>
   );

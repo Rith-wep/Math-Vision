@@ -96,6 +96,21 @@ export const adminService = {
     };
   },
 
+  async renameQcmCategory(payload) {
+    const response = await apiClient.put(
+      "/qcm/settings/rename-category",
+      payload,
+      createAuthorizedConfig()
+    );
+
+    return {
+      fromCategory: response.data?.fromCategory || payload.fromCategory || "",
+      toCategory: response.data?.toCategory || payload.toCategory || "",
+      updatedQuestions: Number(response.data?.updatedQuestions || 0) || 0,
+      settingsUpdated: Boolean(response.data?.settingsUpdated)
+    };
+  },
+
   async getQuestions() {
     const response = await apiClient.get("/qcm", createAuthorizedConfig());
     const payload = Array.isArray(response.data) ? response.data : response.data?.items || response.data?.questions || [];
@@ -130,11 +145,11 @@ export const adminService = {
     if (payload.pdf_link) {
       formData.append("pdf_link", payload.pdf_link);
     }
-    if (payload.thumbnail_link) {
-      formData.append("thumbnail_link", payload.thumbnail_link);
-    }
     if (payload.file) {
       formData.append("file", payload.file);
+    }
+    if (payload.thumbnail_file) {
+      formData.append("thumbnail_file", payload.thumbnail_file);
     }
 
     const response = await apiClient.post(
@@ -161,10 +176,35 @@ export const adminService = {
   },
 
   async updateDocument(documentId, payload) {
+    const hasFile = payload?.file instanceof File;
+    const hasThumbnailFile = payload?.thumbnail_file instanceof File;
+    let requestPayload = payload;
+
+    if (hasFile || hasThumbnailFile) {
+      requestPayload = new FormData();
+      requestPayload.append("title", payload.title);
+      requestPayload.append("description", payload.description);
+      requestPayload.append("category", payload.category);
+      if (hasFile) {
+        requestPayload.append("file", payload.file);
+      }
+      if (hasThumbnailFile) {
+        requestPayload.append("thumbnail_file", payload.thumbnail_file);
+      }
+    }
+
     const response = await apiClient.put(
       `/documents/${documentId}`,
-      payload,
-      createAuthorizedConfig()
+      requestPayload,
+      createAuthorizedConfig(
+        hasFile || hasThumbnailFile
+          ? {
+              headers: {
+                "Content-Type": "multipart/form-data"
+              }
+            }
+          : undefined
+      )
     );
 
     return mapDocumentFromApi(response.data);

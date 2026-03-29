@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
   CalendarDays,
   Download,
   File,
   FileText,
-  HardDrive,
+  Lock,
   Search,
   X
 } from "lucide-react";
@@ -14,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 
 import { ScanHeader } from "../components/ScanHeader.jsx";
 import { SkeletonBlock } from "../components/SkeletonBlock.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 import { formulaService } from "../services/formulaService.js";
 import { toKhmerErrorMessage } from "../utils/errorMessages.js";
 
@@ -85,14 +88,37 @@ LaTeX:
 ${formula.latex_content || ""}
 `.trim();
 
+const buildPreviewUrl = (pdfUrl) => {
+  if (!pdfUrl) {
+    return "";
+  }
+
+  return `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(pdfUrl)}`;
+};
+
+const buildCloudinaryPdfPagePreviewUrl = (pdfUrl, pageNumber = 1) => {
+  if (!pdfUrl || !/res\.cloudinary\.com/i.test(pdfUrl) || !/\/image\/upload\//i.test(pdfUrl) || !/\.pdf(?:\?|#|$)/i.test(pdfUrl)) {
+    return "";
+  }
+
+  return pdfUrl.replace("/image/upload/", `/image/upload/pg_${Math.max(1, Number(pageNumber) || 1)},f_jpg,q_auto,w_1200/`);
+};
+
 export const DocsPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [searchValue, setSearchValue] = useState("");
   const [previewDocument, setPreviewDocument] = useState(null);
+  const [previewPage, setPreviewPage] = useState(1);
   const [activeCategory, setActiveCategory] = useState(allCategoryLabel);
+  const isFreeUser = (user?.role || "user") !== "admin";
+
+  useEffect(() => {
+    setPreviewPage(1);
+  }, [previewDocument?.pdf_url]);
 
   useEffect(() => {
     const fetchDocuments = async () => {
@@ -157,12 +183,22 @@ export const DocsPage = () => {
 
   const handlePreviewOpen = (formula) => {
     if (!formula.pdf_url) {
+      if (isFreeUser) {
+        setErrorMessage("Preview is not available for this document yet.");
+        return;
+      }
+
       handleDownload(formula);
       return;
     }
 
+    setPreviewPage(1);
     setPreviewDocument(formula);
   };
+
+  const totalPreviewPages = Math.max(1, Number(previewDocument?.page_count || 1) || 1);
+  const previewImageUrl = buildCloudinaryPdfPagePreviewUrl(previewDocument?.pdf_url, previewPage);
+  const canUseImagePreview = Boolean(previewImageUrl || previewDocument?.thumbnail_url);
 
   return (
     <motion.div
@@ -364,15 +400,22 @@ export const DocsPage = () => {
                               <CalendarDays className="h-3.5 w-3.5" />
                               <span>{yearLabel}</span>
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => handleDownload(formula)}
-                              className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-700 transition hover:bg-emerald-100 sm:text-xs"
-                              aria-label={`Download ${formula.title_kh || "document"}`}
-                            >
-                              <Download className="h-3.5 w-3.5" />
-                              <span>{fileSizeLabel}</span>
-                            </button>
+                            {isFreeUser ? (
+                              <div className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-500 sm:text-xs">
+                                <Lock className="h-3.5 w-3.5" />
+                                <span>{fileSizeLabel}</span>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleDownload(formula)}
+                                className="inline-flex items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-700 transition hover:bg-emerald-100 sm:text-xs"
+                                aria-label={`Download ${formula.title_kh || "document"}`}
+                              >
+                                <Download className="h-3.5 w-3.5" />
+                                <span>{fileSizeLabel}</span>
+                              </button>
+                            )}
                           </div>
                         </div>
                       </motion.article>
@@ -403,23 +446,66 @@ export const DocsPage = () => {
               </button>
             </div>
 
-            <div className="flex-1 bg-slate-100">
-              <iframe
-                src={previewDocument.pdf_url}
-                title={previewDocument.title_kh || "PDF preview"}
-                className="h-full w-full border-0"
-              />
+            <div className="flex flex-1 flex-col bg-slate-100">
+              {canUseImagePreview && totalPreviewPages > 1 ? (
+                <div className="flex items-center justify-between border-b border-slate-200 bg-white/90 px-4 py-3">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewPage((current) => Math.max(1, current - 1))}
+                    disabled={previewPage <= 1}
+                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    <span>Prev</span>
+                  </button>
+                  <div className="text-sm font-semibold text-slate-600">
+                    Page {previewPage} of {totalPreviewPages}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewPage((current) => Math.min(totalPreviewPages, current + 1))}
+                    disabled={previewPage >= totalPreviewPages}
+                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <span>Next</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : null}
+
+              {canUseImagePreview ? (
+                <div className="flex h-full w-full items-center justify-center overflow-auto bg-slate-100 p-3">
+                  <img
+                    src={previewImageUrl || previewDocument.thumbnail_url}
+                    alt={previewDocument.title_kh || "PDF preview"}
+                    className="max-h-full w-auto max-w-full rounded-2xl border border-white/70 bg-white object-contain shadow-[0_18px_42px_rgba(15,23,42,0.12)]"
+                  />
+                </div>
+              ) : (
+                <iframe
+                  src={buildPreviewUrl(previewDocument.pdf_url)}
+                  title={previewDocument.title_kh || "PDF preview"}
+                  className="h-full w-full border-0"
+                />
+              )}
             </div>
 
             <div className="flex justify-end border-t border-slate-100 px-5 py-4">
-              <button
-                type="button"
-                onClick={() => handleDownload(previewDocument)}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-green-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
-              >
-                <Download className="h-4 w-4" />
-                <span>Open PDF</span>
-              </button>
+              {isFreeUser ? (
+                <div className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-500">
+                  <Lock className="h-4 w-4" />
+                  <span>Download locked</span>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleDownload(previewDocument)}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-green-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-95"
+                >
+                  <Download className="h-4 w-4" />
+                  <span>Open PDF</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

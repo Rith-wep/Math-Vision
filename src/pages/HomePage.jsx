@@ -1,11 +1,15 @@
-import { useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { BookOpenCheck, BookOpenText, Calculator, Camera, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
 import { ScanHeader } from "../components/ScanHeader.jsx";
+import { QuotaStatusCard } from "../components/QuotaStatusCard.jsx";
+import { SubscriptionModal } from "../components/SubscriptionModal.jsx";
 import { UploadPhoto } from "../components/UploadPhoto.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
+import { formulaService } from "../services/formulaService.js";
 
 const homeCards = [
   {
@@ -63,8 +67,11 @@ const heroSymbols = {
 
 export const HomePage = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isHeroVideoReady, setIsHeroVideoReady] = useState(false);
+  const [solveAccess, setSolveAccess] = useState(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const heroBackdropSymbols = [
     { key: "sigma", top: "10%", left: "8%", size: "text-xl", rotate: "-12deg" },
     { key: "integral", top: "18%", left: "76%", size: "text-3xl", rotate: "10deg" },
@@ -83,6 +90,37 @@ export const HomePage = () => {
 
     navigate(card.to);
   };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadSolveAccess = async () => {
+      if (!isAuthenticated || user?.role === "admin") {
+        if (isMounted) {
+          setSolveAccess(null);
+        }
+        return;
+      }
+
+      try {
+        const summary = await formulaService.getSolveAccessStatus();
+
+        if (isMounted) {
+          setSolveAccess(summary);
+        }
+      } catch {
+        if (isMounted) {
+          setSolveAccess(null);
+        }
+      }
+    };
+
+    loadSolveAccess();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, user?.role]);
 
   return (
     <motion.div
@@ -166,6 +204,18 @@ export const HomePage = () => {
 
             </div>
           </section>
+          <QuotaStatusCard
+            solveAccess={solveAccess}
+            className="mt-4"
+            statusText={
+              solveAccess?.isBlocked
+                ? "Daily free solves are finished."
+                : solveAccess?.nextMode === "answer_only"
+                  ? "ឱកាសសិក្សាបន្ទាប់របស់អ្នក នឹងបង្ហាញត្រឹមតែលទ្ធផលចុងក្រោយប៉ុណ្ណោះ។"
+                  : "អ្នកនៅមានឱកាសទទួលបានការពន្យល់លម្អិតពី AI សម្រាប់ថ្ងៃនេះ។"
+            }
+            onUpgrade={() => setShowUpgradeModal(true)}
+          />
 
           <section className="mt-4 grid grid-cols-1 gap-2.5 md:grid-cols-2">
             {homeCards.map((card, index) => {
@@ -250,7 +300,10 @@ export const HomePage = () => {
             });
           }}
         />
+        <SubscriptionModal open={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
       </div>
     </motion.div>
   );
 };
+
+

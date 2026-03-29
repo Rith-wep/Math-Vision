@@ -17,12 +17,12 @@ const defaultFormState = {
   correct_answer: "A",
   explanation: "",
   level: 1,
-  category: "Algebra"
+  category: ""
 };
 
 const answerOptions = ["A", "B", "C", "D"];
-const categories = ["Algebra", "Geometry", "Calculus", "Statistics", "Trigonometry"];
 const levels = [1, 2, 3, 4, 5];
+const CUSTOM_CATEGORY_VALUE = "__custom__";
 
 const formatDate = (value) =>
   new Intl.DateTimeFormat("en-GB", {
@@ -48,16 +48,18 @@ const looksLikeLatex = (value = "") => {
 export const QcmManager = () => {
   const [questions, setQuestions] = useState([]);
   const [qcmSettings, setQcmSettings] = useState([]);
-  const [selectedSettingsCategory, setSelectedSettingsCategory] = useState(categories[0]);
+  const [selectedSettingsCategory, setSelectedSettingsCategory] = useState("");
   const [searchValue, setSearchValue] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [isRenamingCategory, setIsRenamingCategory] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [formState, setFormState] = useState(defaultFormState);
   const [questionToDelete, setQuestionToDelete] = useState(null);
   const [toast, setToast] = useState({ type: "", message: "" });
+  const [renameCategoryValue, setRenameCategoryValue] = useState("");
 
   const loadQuestions = async () => {
     setIsLoading(true);
@@ -71,11 +73,10 @@ export const QcmManager = () => {
       setQcmSettings(settings);
       setSelectedSettingsCategory((current) => {
         const availableCategories = new Set([
-          ...categories,
           ...data.map((question) => question.category),
           ...settings.map((setting) => setting.category)
         ]);
-        return availableCategories.has(current) ? current : Array.from(availableCategories)[0] || categories[0];
+        return availableCategories.has(current) ? current : Array.from(availableCategories)[0] || "";
       });
       setToast({ type: "", message: "" });
     } catch (error) {
@@ -91,6 +92,10 @@ export const QcmManager = () => {
   useEffect(() => {
     loadQuestions();
   }, []);
+
+  useEffect(() => {
+    setRenameCategoryValue(selectedSettingsCategory);
+  }, [selectedSettingsCategory]);
 
   const filteredQuestions = useMemo(() => {
     const normalizedSearch = searchValue.trim().toLowerCase();
@@ -115,7 +120,7 @@ export const QcmManager = () => {
     const orderedCategories = [];
     const seenCategories = new Set();
 
-    [...categories, ...questions.map((question) => question.category), ...qcmSettings.map((setting) => setting.category)].forEach(
+    [...questions.map((question) => question.category), ...qcmSettings.map((setting) => setting.category)].forEach(
       (category) => {
         const normalizedCategory = typeof category === "string" ? category.trim() : "";
 
@@ -140,9 +145,16 @@ export const QcmManager = () => {
       }
     );
   }, [qcmSettings, selectedSettingsCategory]);
+  const isCustomCategorySelected = useMemo(
+    () => Boolean(formState.category) && !availableCategories.includes(formState.category),
+    [availableCategories, formState.category]
+  );
 
   const openCreateModal = () => {
-    setFormState(defaultFormState);
+    setFormState({
+      ...defaultFormState,
+      category: selectedSettingsCategory || availableCategories[0] || ""
+    });
     setIsEditorOpen(true);
   };
 
@@ -297,6 +309,52 @@ export const QcmManager = () => {
       });
     } finally {
       setIsSavingSettings(false);
+    }
+  };
+
+  const handleRenameCategory = async (event) => {
+    event.preventDefault();
+
+    if (!selectedSettingsCategory) {
+      setToast({
+        type: "error",
+        message: "Please choose a category to rename first."
+      });
+      return;
+    }
+
+    const trimmedNextCategory = renameCategoryValue.trim();
+
+    if (!trimmedNextCategory) {
+      setToast({
+        type: "error",
+        message: "Please enter the new category name."
+      });
+      return;
+    }
+
+    setIsRenamingCategory(true);
+
+    try {
+      const result = await adminService.renameQcmCategory({
+        fromCategory: selectedSettingsCategory,
+        toCategory: trimmedNextCategory
+      });
+
+      await loadQuestions();
+      setSelectedSettingsCategory(result.toCategory);
+      setRenameCategoryValue(result.toCategory);
+      setToast({
+        type: "success",
+        message: `Renamed ${result.fromCategory} to ${result.toCategory}.`
+      });
+    } catch (error) {
+      setToast({
+        type: "error",
+        message: getErrorMessage(error, "Unable to rename the category.")
+      });
+    } finally {
+      setIsRenamingCategory(false);
     }
   };
 
@@ -529,6 +587,34 @@ export const QcmManager = () => {
               className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-emerald-300 focus:bg-white"
               placeholder="Student-facing QCM description"
             />
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+            <div className="flex flex-col gap-3 md:flex-row md:items-end">
+              <div className="flex-1">
+                <label className="mb-2 block text-sm font-semibold text-slate-700">Rename Category</label>
+                <input
+                  type="text"
+                  value={renameCategoryValue}
+                  onChange={(event) => setRenameCategoryValue(event.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-emerald-300"
+                  placeholder="Enter the new category name"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleRenameCategory}
+                disabled={isRenamingCategory || !selectedSettingsCategory}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-white px-5 py-3 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50 disabled:opacity-70"
+              >
+                {isRenamingCategory ? <ButtonSpinner className="h-4 w-4" /> : null}
+                <span>Rename Category</span>
+              </button>
+            </div>
+            <p className="mt-2 text-xs leading-relaxed text-slate-500">
+              This will update the selected category name across all related QCM questions and card settings.
+            </p>
           </div>
 
           <div className="flex justify-end">
@@ -789,18 +875,38 @@ export const QcmManager = () => {
 
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">Category</label>
-                  <input
-                    list="qcm-question-category-options"
-                    value={formState.category}
-                    onChange={(event) => handleFormChange("category", event.target.value)}
+                  <select
+                    value={isCustomCategorySelected ? CUSTOM_CATEGORY_VALUE : formState.category}
+                    onChange={(event) => {
+                      if (event.target.value === CUSTOM_CATEGORY_VALUE) {
+                        handleFormChange("category", "");
+                        return;
+                      }
+
+                      handleFormChange("category", event.target.value);
+                    }}
                     className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-emerald-300 focus:bg-white"
-                    placeholder="Choose or type a category"
-                  />
-                  <datalist id="qcm-question-category-options">
+                  >
+                    <option value="" disabled>
+                      Select a category
+                    </option>
                     {availableCategories.map((category) => (
-                      <option key={category} value={category} />
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
                     ))}
-                  </datalist>
+                    <option value={CUSTOM_CATEGORY_VALUE}>Custom category</option>
+                  </select>
+
+                  {(isCustomCategorySelected || !formState.category) ? (
+                    <input
+                      type="text"
+                      value={formState.category}
+                      onChange={(event) => handleFormChange("category", event.target.value)}
+                      className="mt-3 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-emerald-300 focus:bg-white"
+                      placeholder="Enter a new category"
+                    />
+                  ) : null}
                 </div>
               </div>
 

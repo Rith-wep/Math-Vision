@@ -241,7 +241,7 @@ const renderExplanationContent = (value = "") => {
 
 export const QcmPage = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, isAuthLoading, loginWithGoogle } = useAuth();
+  const { isAuthenticated, isAuthLoading, loginWithGoogle, user } = useAuth();
 
   const [subjects, setSubjects] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState(null);
@@ -342,7 +342,7 @@ export const QcmPage = () => {
   };
 
   const handleChooseLevel = async (level) => {
-    if (!level.unlocked || !selectedSubject) {
+    if (!level.unlocked || level.restricted || !selectedSubject) {
       return;
     }
 
@@ -471,6 +471,10 @@ export const QcmPage = () => {
   };
 
   const getLevelCardClasses = (level) => {
+    if (level.restricted) {
+      return "border-slate-200 bg-slate-50/90 grayscale";
+    }
+
     if (level.completed) {
       return "border-green-200 bg-green-50/80";
     }
@@ -658,6 +662,7 @@ export const QcmPage = () => {
               <section className="mt-4 space-y-3">
                 {subjectLevels.map((level, index) => {
                   const isLocked = !level.unlocked;
+                  const isRestricted = Boolean(level.restricted);
 
                   return (
                     <div key={level.id} className="relative">
@@ -668,7 +673,7 @@ export const QcmPage = () => {
                       <motion.button
                         type="button"
                         onClick={() => handleChooseLevel(level)}
-                        whileTap={{ scale: isLocked ? 1 : 0.99 }}
+                        whileTap={{ scale: isLocked || isRestricted ? 1 : 0.99 }}
                         className={`premium-card relative w-full rounded-[2rem] border p-4 text-left ${getLevelCardClasses(level)}`}
                       >
                         <div className="flex items-start gap-4">
@@ -683,7 +688,7 @@ export const QcmPage = () => {
                           >
                             {level.completed ? (
                               <Check className="h-5 w-5" />
-                            ) : isLocked ? (
+                            ) : isLocked || isRestricted ? (
                               <Lock className="h-4 w-4" />
                             ) : (
                               <span className="text-sm font-bold">{level.id}</span>
@@ -695,7 +700,9 @@ export const QcmPage = () => {
                               <div>
                                 <h2 className="text-lg font-bold text-slate-800">{level.label}</h2>
                                 <p className="mt-1 text-xs font-medium text-slate-400">
-                                  {level.completed
+                                  {isRestricted
+                                    ? "Free users can access only up to Level 2."
+                                    : level.completed
                                     ? `បានបញ្ចប់ · ពិន្ទុខ្ពស់បំផុត ${level.bestScore || 0}%`
                                     : level.current
                                       ? `កម្រិតបច្ចុប្បន្ន · ត្រូវការ ${level.requiredScore}%`
@@ -703,7 +710,7 @@ export const QcmPage = () => {
                                 </p>
                               </div>
 
-                              {level.current ? (
+                              {level.current && !isRestricted ? (
                                 <div className="inline-flex items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 shadow-sm">
                                   <Play className="h-3.5 w-3.5 fill-current" />
                                   Start
@@ -732,15 +739,15 @@ export const QcmPage = () => {
                           </div>
                         </div>
 
-                        {!isLocked && (
+                        {!isLocked && !isRestricted && (
                           <ChevronRight className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-300" />
                         )}
 
-                        {isLocked && (
+                        {(isLocked || isRestricted) && (
                           <div className="absolute inset-0 flex items-center justify-center rounded-[2rem] bg-white/65 backdrop-blur-[2px]">
                             <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-xs font-medium text-slate-500 shadow-sm">
                               <Lock className="h-3.5 w-3.5" />
-                              Locked
+                              {isRestricted ? "Pro" : "Locked"}
                             </div>
                           </div>
                         )}

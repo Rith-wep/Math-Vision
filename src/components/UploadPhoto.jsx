@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Camera, Image as ImageIcon, LoaderCircle, X } from "lucide-react";
 
+import { SubscriptionModal, isSubscriptionLimitError } from "./SubscriptionModal.jsx";
 import { formulaService } from "../services/formulaService.js";
 import { toKhmerErrorMessage } from "../utils/errorMessages.js";
 
@@ -229,6 +230,7 @@ export const UploadPhoto = ({ open, onClose, onScanComplete }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [cameraStream, setCameraStream] = useState(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [isCameraReady, setIsCameraReady] = useState(false);
@@ -317,6 +319,7 @@ export const UploadPhoto = ({ open, onClose, onScanComplete }) => {
       clearPreview();
       setErrorMessage("");
       setIsProcessing(false);
+      setShowSubscriptionModal(false);
       setIsFlashActive(false);
       stopCameraStream();
     }
@@ -651,11 +654,16 @@ export const UploadPhoto = ({ open, onClose, onScanComplete }) => {
       onScanComplete?.(result);
       onClose?.();
     } catch (error) {
-      setErrorMessage(
-        toKhmerErrorMessage(
-          error.response?.data?.message || error.message || "Unable to scan the image right now. Please try again."
-        )
-      );
+      if (isSubscriptionLimitError(error)) {
+        setErrorMessage("");
+        setShowSubscriptionModal(true);
+      } else {
+        setErrorMessage(
+          toKhmerErrorMessage(
+            error.response?.data?.message || error.message || "Unable to scan the image right now. Please try again."
+          )
+        );
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -861,7 +869,7 @@ export const UploadPhoto = ({ open, onClose, onScanComplete }) => {
                   <span>Photo</span>
                 </button>
               </div>
-            </div>
+          </div>
 
             <input
               ref={cameraInputRef}
@@ -888,6 +896,11 @@ export const UploadPhoto = ({ open, onClose, onScanComplete }) => {
 
             <canvas ref={canvasRef} className="hidden" />
           </div>
+
+          <SubscriptionModal
+            open={showSubscriptionModal}
+            onClose={() => setShowSubscriptionModal(false)}
+          />
         </motion.div>
       )}
     </AnimatePresence>

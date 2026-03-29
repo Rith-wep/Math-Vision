@@ -10,6 +10,7 @@ import { SolutionQuestionCard } from "../components/solution/SolutionQuestionCar
 import { SolutionResultCard } from "../components/solution/SolutionResultCard.jsx";
 import { SolutionSkeleton } from "../components/solution/SolutionSkeleton.jsx";
 import { SolutionStepsTimeline } from "../components/solution/SolutionStepsTimeline.jsx";
+import { SubscriptionModal } from "../components/SubscriptionModal.jsx";
 import { useSolutionData } from "../hooks/useSolutionData.js";
 import {
   buildShareText,
@@ -26,6 +27,23 @@ const PDF_SUCCESS_TITLE = "រក្សាទុកជោគជ័យ!";
 const PDF_SUCCESS_DETAIL =
   "លោកអ្នកអាចរកឯកសារនេះបាននៅក្នុងកម្មវិធី Files ឬ Downloads។";
 
+const formatResetCountdown = (timeLeftMs) => {
+  const safeMs = Math.max(0, timeLeftMs);
+  const totalSeconds = Math.floor(safeMs / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return [hours, minutes, seconds].map((value) => String(value).padStart(2, "0")).join(":");
+};
+
+const getNextDailyResetMs = () => {
+  const now = new Date();
+  const nextReset = new Date(now);
+  nextReset.setHours(24, 0, 0, 0);
+  return nextReset.getTime() - now.getTime();
+};
+
 export const SolutionPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -33,6 +51,7 @@ export const SolutionPage = () => {
   const pageRef = useRef(null);
   const [actionFeedback, setActionFeedback] = useState(null);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [resetCountdown, setResetCountdown] = useState(() => formatResetCountdown(getNextDailyResetMs()));
   const [pdfDialog, setPdfDialog] = useState({
     open: false,
     fileUrl: "",
@@ -42,7 +61,14 @@ export const SolutionPage = () => {
   const expression = searchParams.get("expression") || "";
   const prefetchedSolution = location.state?.prefetchedSolution || null;
 
-  const { solution, isLoading, errorMessage, setErrorMessage } = useSolutionData({
+  const {
+    solution,
+    isLoading,
+    errorMessage,
+    setErrorMessage,
+    showSubscriptionModal,
+    setShowSubscriptionModal
+  } = useSolutionData({
     expression,
     prefetchedSolution
   });
@@ -69,6 +95,7 @@ export const SolutionPage = () => {
   );
   const finalAnswerText = plainFinalAnswer || cleanFinalAnswer;
   const stepsCount = solution?.steps?.length || 0;
+  const isAnswerOnlySolution = Boolean(solution?.isAnswerOnly);
 
   const closePdfDialog = useCallback(() => {
     setPdfDialog((current) => {
@@ -82,6 +109,14 @@ export const SolutionPage = () => {
         fileName: ""
       };
     });
+  }, []);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setResetCountdown(formatResetCountdown(getNextDailyResetMs()));
+    }, 1000);
+
+    return () => window.clearInterval(intervalId);
   }, []);
 
   useEffect(() => {
@@ -271,15 +306,37 @@ export const SolutionPage = () => {
 
         {!isLoading && solution ? (
           <>
-            <SolutionOverviewCard
-              solutionStyle={solutionStyle}
-              stepsCount={solution.steps?.length || 0}
-            />
-            <SolutionStepsTimeline
-              steps={solution.steps || []}
-              solutionStyle={solutionStyle}
-            />
-            <SolutionGraphCard data={graphData} />
+            {!isAnswerOnlySolution ? (
+              <>
+                <SolutionOverviewCard
+                  solutionStyle={solutionStyle}
+                  stepsCount={solution.steps?.length || 0}
+                />
+                <SolutionStepsTimeline
+                  steps={solution.steps || []}
+                  solutionStyle={solutionStyle}
+                />
+                <SolutionGraphCard data={graphData} />
+              </>
+            ) : (
+              <div className="mt-4 rounded-3xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                <p className="leading-relaxed">
+                  This free solve was returned in answer-only mode. Upgrade to Pro to see the full explanation.
+                </p>
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <p className="text-[11px] font-medium text-amber-700">
+                    Reset in {resetCountdown}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowSubscriptionModal(true)}
+                    className="inline-flex shrink-0 items-center rounded-full bg-[#22c55e] px-3 py-1.5 text-xs font-bold text-white transition hover:bg-[#16a34a]"
+                  >
+                    Upgrade
+                  </button>
+                </div>
+              </div>
+            )}
             <SolutionResultCard
               plainFinalAnswer={plainFinalAnswer}
               cleanFinalAnswer={cleanFinalAnswer}
@@ -331,6 +388,11 @@ export const SolutionPage = () => {
           </div>
         </div>
       ) : null}
+
+      <SubscriptionModal
+        open={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
+      />
     </motion.div>
   );
 };

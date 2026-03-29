@@ -27,6 +27,11 @@ class FormulaService {
     return response.data;
   }
 
+  async getSolveAccessStatus() {
+    const response = await apiClient.get("/user/solve-access");
+    return response.data;
+  }
+
   async getUserHistory() {
     const response = await apiClient.get("/user/history");
     return response.data;

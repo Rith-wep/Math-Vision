@@ -190,9 +190,9 @@ export const LoginPage = () => {
       if (
         axios.isAxiosError(error) &&
         error.response?.status === 403 &&
-        rawMessage.includes("Limit reached: This device already has 2 accounts.")
+        rawMessage.includes("Limit reached: This device already has 3 accounts.")
       ) {
-        setToastMessage("ឧបករណ៍នេះបានបង្កើតគណនីអស់កូតាហើយ (អតិបរមា 2 គណនី)។");
+        setToastMessage("ឧបករណ៍នេះបានបង្កើតគណនីអស់កូតាហើយ (អតិបរមា 3 គណនី)។");
       }
 
       const nextError = axios.isAxiosError(error)
