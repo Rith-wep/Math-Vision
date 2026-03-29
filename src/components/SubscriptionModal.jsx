@@ -169,7 +169,7 @@ export const SubscriptionModal = ({ open, onClose }) => {
                           <p className="mt-1.5 text-[15px] font-black text-emerald-700 sm:text-base" style={latinFontStyle}>
                             {plan.price}
                           </p>
-                          <p className="mt-1 pr-16 text-[10px] leading-relaxed text-emerald-800/80 sm:pr-20 sm:text-[11px]" style={khmerFontStyle}>
+                          <p className="mt-1  text-[10px] leading-relaxed text-emerald-800/80 sm:pr-20 sm:text-[11px]" style={khmerFontStyle}>
                             {plan.note}
                           </p>
                         </button>

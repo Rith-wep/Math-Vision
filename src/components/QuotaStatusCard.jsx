@@ -47,7 +47,7 @@ export const QuotaStatusCard = ({
 
   return (
     <section
-      className={`premium-surface rounded-[1.7rem] border border-emerald-100 bg-gradient-to-br from-emerald-50/20 to-white/90 p-4 shadow-[0_0_15px_rgba(16,185,129,0.2)] backdrop-blur-xl ${className}`.trim()}
+      className={`premium-surface rounded-[1.7rem] border border-emerald-100/90 bg-gradient-to-br from-white via-emerald-50/55 to-white p-4 shadow-[0_14px_30px_rgba(34,197,94,0.10)] ${className}`.trim()}
       style={{ fontFamily: '"Koh Santepheap", "Kantumruy Pro", sans-serif' }}
     >
       <div className="flex items-start justify-between gap-3">
@@ -56,15 +56,15 @@ export const QuotaStatusCard = ({
             <div
               className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold ${
                 solveAccess.remainingExplained === 0
-                  ? "bg-amber-50 text-amber-600"
-                  : "bg-emerald-50 text-emerald-700"
+                  ? "bg-amber-50/95 text-amber-700"
+                  : "bg-emerald-50/95 text-emerald-700"
               }`}
             >
               <Sparkles className="h-3 w-3" />
               <span style={latinFontStyle}>{`Explained left: ${solveAccess.remainingExplained}`}</span>
             </div>
 
-            <div className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold text-emerald-700">
+            <div className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-50/95 px-2.5 py-1 text-[10px] font-semibold text-emerald-700">
               <Unlock className="h-3 w-3" />
               <span style={latinFontStyle}>{`Answer-only left: ${solveAccess.remainingAnswerOnly}`}</span>
             </div>
@@ -74,7 +74,7 @@ export const QuotaStatusCard = ({
 
       <div className="mt-2.5 flex flex-col gap-2.5">
         <p
-          className="text-xs leading-relaxed text-slate-500"
+          className="text-xs leading-relaxed text-slate-600"
           style={hasKhmerCharacters(statusText) ? undefined : latinFontStyle}
         >
           {statusText}
@@ -83,7 +83,7 @@ export const QuotaStatusCard = ({
         {showResetCountdown || onUpgrade ? (
           <div className="flex items-center justify-between gap-3">
             {showResetCountdown ? (
-              <div className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-medium text-[#22c55e]">
+              <div className="inline-flex min-w-0 items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50/95 px-2.5 py-1 text-[10px] font-medium text-[#16a34a]">
                 <Clock3 className="h-3 w-3 shrink-0" />
                 <span style={latinFontStyle}>{resetCountdown}</span>
               </div>
