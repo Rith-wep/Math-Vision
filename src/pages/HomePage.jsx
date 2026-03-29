@@ -14,7 +14,6 @@ const homeCards = [
     subtitle: "ដោះស្រាយសមីការ និងលំហាត់គណិតវិទ្យា",
     icon: Calculator,
     accent: "from-green-500 to-emerald-500",
-    glow: "rgba(16, 185, 129, 0.35)",
     actionLabel: "Open Solver",
     to: "/solve"
   },
@@ -24,7 +23,6 @@ const homeCards = [
     subtitle: "ស្វែងរករូបមន្ត មេរៀន និងឯកសារសិក្សា",
     icon: BookOpenText,
     accent: "from-emerald-500 to-lime-500",
-    glow: "rgba(132, 204, 22, 0.32)",
     actionLabel: "Browse Docs",
     to: "/docs"
   },
@@ -34,7 +32,6 @@ const homeCards = [
     subtitle: "ហាត់សំណួរ QCM និងវាស់កម្រិតចំណេះដឹងគណិតវិទ្យា",
     icon: BookOpenCheck,
     accent: "from-emerald-500 to-green-600",
-    glow: "rgba(34, 197, 94, 0.34)",
     actionLabel: "Open Quiz",
     to: "/qcm"
   },
@@ -44,7 +41,6 @@ const homeCards = [
     subtitle: "ថតរូបលំហាត់ ហើយបញ្ជូនទៅ AI ដើម្បីដោះស្រាយ",
     icon: Camera,
     accent: "from-green-400 to-green-600",
-    glow: "rgba(34, 197, 94, 0.3)",
     actionLabel: "Scan Now"
   }
 ];

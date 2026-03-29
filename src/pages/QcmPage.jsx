@@ -545,7 +545,7 @@ export const QcmPage = () => {
               className="inline-flex mb-2 items-center gap-2 rounded-full border border-green-100 bg-white px-3 py-2 text-sm font-medium text-green-700 shadow-sm transition hover:bg-green-50"
             >
               <ArrowLeft className="h-4 w-4" />
-              <span>Back</span>
+              <span>Back to home</span>
             </button>
 
             <section className="premium-surface rounded-[2rem] border border-green-100/80 p-4">

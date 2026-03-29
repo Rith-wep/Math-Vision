@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, CircleUser, Info, LogIn, LogOut } from "lucide-react";
+import { CircleUser, Info, LogIn, LogOut, Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { ButtonSpinner } from "./ButtonSpinner.jsx";
@@ -120,32 +120,35 @@ export const ScanHeader = () => {
 
         {isAuthenticated && user ? (
           <div ref={menuRef} className="relative z-[80]">
-            <button
-              type="button"
-              onClick={() => setIsMenuOpen((current) => !current)}
-              className="flex items-center gap-2 rounded-full border border-slate-200/90 bg-white/95 px-1.5 py-1 shadow-[0_10px_24px_rgba(15,23,42,0.06)] transition hover:border-emerald-200 hover:bg-slate-50"
-              aria-label="Open account menu"
-            >
-              <div className="relative">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => navigate("/profile")}
+                className="relative rounded-full border border-slate-200/90 bg-white p-1.5 shadow-[0_8px_20px_rgba(15,23,42,0.06)] transition hover:border-emerald-200 hover:bg-slate-50"
+                aria-label="Open profile"
+              >
                 <img
                   src={avatarUrl}
                   alt={displayName}
-                  className="h-9 w-9 rounded-full object-cover"
+                  className="h-11 w-11 rounded-full object-cover"
                   referrerPolicy="no-referrer"
                 />
                 {hasProfileUpdate && (
-                  <span className="absolute right-0 top-0 h-2.5 w-2.5 rounded-full border border-white bg-green-500" />
+                  <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full border border-white bg-green-500" />
                 )}
-              </div>
+              </button>
 
-              <motion.span
-                animate={{ rotate: isMenuOpen ? 180 : 0 }}
+              <motion.button
+                type="button"
+                onClick={() => setIsMenuOpen((current) => !current)}
+                animate={{ rotate: isMenuOpen ? 90 : 0 }}
                 transition={{ duration: 0.2, ease: "easeOut" }}
-                className="flex items-center text-slate-500"
+                className="flex items-center justify-center p-1 text-slate-500 transition hover:text-emerald-700"
+                aria-label="Open account menu"
               >
-                <ChevronDown className="h-4 w-4" />
-              </motion.span>
-            </button>
+                <Menu className="h-4.5 w-4.5" />
+              </motion.button>
+            </div>
 
             <AnimatePresence>
               {isMenuOpen && (
