@@ -7,6 +7,7 @@ import { sanitizeLatex, toPlainCopyText } from "../utils/solution/latex.js";
 const PDF_FILE_NAME = "math-vision-solution.pdf";
 const PDF_EXPORT_WIDTH = 960;
 const PDF_MARGIN_MM = 10;
+const PDF_LICENSE_LABEL = "Licensed by Math-Vision";
 
 const createExportSnapshot = (element) => {
   const exportHost = document.createElement("div");
@@ -34,19 +35,24 @@ const createExportSnapshot = (element) => {
       return;
     }
 
+    const isInsideKatex = Boolean(node.closest(".katex"));
+
     node.style.animation = "none";
     node.style.transition = "none";
-    node.style.transform = "none";
+
+    if (!isInsideKatex) {
+      node.style.transform = "none";
+    }
 
     if (node.style.position === "sticky" || node.style.position === "fixed") {
       node.style.position = "static";
     }
 
-    if (node.classList.contains("overflow-x-auto")) {
+    if (!isInsideKatex && node.classList.contains("overflow-x-auto")) {
       node.style.overflowX = "visible";
     }
 
-    if (node.classList.contains("overflow-hidden")) {
+    if (!isInsideKatex && node.classList.contains("overflow-hidden")) {
       node.style.overflow = "visible";
     }
 
@@ -56,6 +62,19 @@ const createExportSnapshot = (element) => {
   });
 
   exportHost.appendChild(clonedElement);
+
+  const licenseFooter = document.createElement("div");
+  licenseFooter.textContent = PDF_LICENSE_LABEL;
+  licenseFooter.style.marginTop = "20px";
+  licenseFooter.style.textAlign = "center";
+  licenseFooter.style.fontFamily = "Inter, sans-serif";
+  licenseFooter.style.fontSize = "12px";
+  licenseFooter.style.fontWeight = "600";
+  licenseFooter.style.letterSpacing = "0.04em";
+  licenseFooter.style.color = "#16a34a";
+  licenseFooter.style.opacity = "0.9";
+
+  exportHost.appendChild(licenseFooter);
   document.body.appendChild(exportHost);
 
   return {

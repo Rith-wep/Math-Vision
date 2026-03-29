@@ -64,6 +64,16 @@ const heroSymbols = {
 export const HomePage = () => {
   const navigate = useNavigate();
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [isHeroVideoReady, setIsHeroVideoReady] = useState(false);
+  const heroBackdropSymbols = [
+    { key: "sigma", top: "10%", left: "8%", size: "text-xl", rotate: "-12deg" },
+    { key: "integral", top: "18%", left: "76%", size: "text-3xl", rotate: "10deg" },
+    { key: "pi", top: "58%", left: "14%", size: "text-2xl", rotate: "-8deg" },
+    { key: "root", top: "26%", left: "56%", size: "text-3xl", rotate: "8deg" },
+    { key: "theta", top: "68%", left: "68%", size: "text-xl", rotate: "-10deg" },
+    { key: "xSquared", top: "72%", left: "36%", size: "text-2xl", rotate: "6deg" },
+    { key: "infinity", top: "16%", left: "34%", size: "text-2xl", rotate: "-5deg" }
+  ];
 
   const handleCardClick = (card) => {
     if (card.id === "scan") {
@@ -87,14 +97,37 @@ export const HomePage = () => {
 
         <main className="flex-1 px-4 py-4 md:px-5 lg:px-6">
           <section className="premium-surface relative overflow-hidden rounded-[2rem] border border-green-100/80 bg-[#d9fbe3] px-7 py-6">
+            <div
+              className={`absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(236,253,245,0.9),_rgba(34,197,94,0.18)_34%,_rgba(22,163,74,0.92)_100%)] transition-opacity duration-500 ${
+                isHeroVideoReady ? "opacity-0" : "opacity-100"
+              }`}
+              aria-hidden="true"
+            >
+              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),transparent_48%,rgba(255,255,255,0.12))]" />
+              {heroBackdropSymbols.map((symbol) => (
+                <span
+                  key={symbol.key}
+                  className={`absolute font-serif font-semibold text-white/35 ${symbol.size}`}
+                  style={{ top: symbol.top, left: symbol.left, transform: `rotate(${symbol.rotate})` }}
+                >
+                  {heroSymbols[symbol.key]}
+                </span>
+              ))}
+            </div>
+
             <video
-              className="absolute inset-0 h-full w-full object-cover"
+              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
+                isHeroVideoReady ? "opacity-100" : "opacity-0"
+              }`}
               autoPlay
               loop
               muted
               playsInline
-              preload="auto"
+              preload="metadata"
               aria-hidden="true"
+              onLoadedData={() => setIsHeroVideoReady(true)}
+              onCanPlay={() => setIsHeroVideoReady(true)}
+              onError={() => setIsHeroVideoReady(false)}
             >
               <source src="/media/home-banner.mp4" type="video/mp4" />
             </video>
@@ -221,4 +254,3 @@ export const HomePage = () => {
     </motion.div>
   );
 };
-

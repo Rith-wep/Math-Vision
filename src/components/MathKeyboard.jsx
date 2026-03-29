@@ -657,7 +657,7 @@ export const MathKeyboard = ({
       drag={isDesktop}
       dragMomentum={false}
       dragElastic={0.08}
-      className="fixed inset-x-0 bottom-0 z-30 bg-transparent px-0 pb-[max(0.25rem,env(safe-area-inset-bottom))] md:inset-x-auto md:bottom-4 md:left-1/2 md:w-auto md:-translate-x-1/2 md:px-0 md:pb-0"
+      className="fixed inset-x-0 bottom-0 z-30 bg-transparent px-0 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:inset-x-auto md:bottom-4 md:left-1/2 md:w-auto md:-translate-x-1/2 md:px-0 md:pb-0"
     >
       <div className="app-shell mx-auto w-full overflow-hidden rounded-t-[2rem] border border-slate-100 bg-white shadow-[0_-10px_28px_rgba(15,23,42,0.06)] md:w-[450px] md:max-w-[450px] md:rounded-[2rem] md:border-slate-200 md:shadow-[0_18px_48px_rgba(15,23,42,0.12)]">
         <div className="border-b border-slate-50 px-3 py-2 md:px-4 md:py-3">
@@ -727,7 +727,7 @@ export const MathKeyboard = ({
         </div>
 
         {isDrawMode ? (
-          <div className="flex h-[min(21rem,calc(100vh-11.75rem))] min-h-[19.5rem] flex-col px-3.5 pb-4 pt-3 md:h-[min(24rem,calc(100vh-14.5rem))] md:min-h-[21.5rem] md:px-4 md:pb-5">
+          <div className="flex h-[min(21.5rem,calc(100vh-11.25rem))] min-h-[20rem] flex-col px-3.5 pb-5 pt-3 md:h-[min(24rem,calc(100vh-14.5rem))] md:min-h-[21.5rem] md:px-4 md:pb-5">
             <div className="mb-2">
               <div className="flex items-center gap-2">
                 <button
@@ -842,10 +842,10 @@ export const MathKeyboard = ({
           </div>
         ) : (
           <div className="px-3.5 pb-2 pt-2">
-            <div
-              className="grid gap-2 md:gap-2.5"
-              style={{ gridTemplateColumns: inputMode === "math" ? "minmax(0, 0.9fr) repeat(4, minmax(0, 1fr))" : "minmax(0, 1fr)" }}
-            >
+          <div
+            className="grid gap-1.5 md:gap-2.5"
+            style={{ gridTemplateColumns: inputMode === "math" ? "minmax(0, 0.82fr) repeat(4, minmax(0, 1fr))" : "minmax(0, 1fr)" }}
+          >
               <button
                 type="button"
                 onClick={() => setInputMode((currentMode) => (currentMode === "math" ? "text" : "math"))}
@@ -878,7 +878,7 @@ export const MathKeyboard = ({
                             : "border-slate-100 bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100"
                         }`}
                       >
-                        <span className="truncate text-[11px] font-bold tracking-[0.01em] sm:text-[13px]">
+                        <span className="text-[10px] font-bold tracking-[-0.01em] sm:text-[13px]">
                           {category.label}
                         </span>
                         {isActive ? (

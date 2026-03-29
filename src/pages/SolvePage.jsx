@@ -592,7 +592,7 @@ export const SolvePage = () => {
 
         <main
           className={`flex-1 bg-gradient-to-b from-green-50 via-white to-slate-50 px-4 pt-4 md:px-5 lg:px-6 ${
-            isInputReady ? "pb-72 sm:pb-80 md:pb-[24rem] xl:pb-[22rem]" : "pb-6"
+            isInputReady ? "pb-[26rem] sm:pb-[25rem] md:pb-[24rem] xl:pb-[22rem]" : "pb-6"
           }`}
         >
           <button

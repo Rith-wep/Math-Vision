@@ -340,9 +340,9 @@ export const DocsPage = () => {
                               </div>
                             </>
                           )}
-                          <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/96 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.08em] text-rose-500 shadow-[0_8px_20px_rgba(255,255,255,0.28)] sm:right-4 sm:top-4 sm:px-3 sm:text-[11px]">
-                            <span className="inline-block h-2.5 w-2.5 rounded-[4px] bg-rose-500" />
-                            {isPdf ? "PDF" : "DOC"}
+                          <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full border border-emerald-100 bg-emerald-50/95 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.08em] text-emerald-700 shadow-[0_10px_24px_rgba(16,185,129,0.14)] sm:right-4 sm:top-4 sm:px-3 sm:text-[11px]">
+                            <span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                            Preview
                           </span>
                         </button>
 
